@@ -1,0 +1,7 @@
+name="ocamloscope_test"
+version="1.0.0"
+description="ocamloscope test ocamlfind package"
+requires=""
+archive(byte)="ocamloscope_test.cmo"
+archive(native)="ocamloscope_test.cmx"
+linkopts = ""

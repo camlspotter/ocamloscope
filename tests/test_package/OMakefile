@@ -1,0 +1,11 @@
+OCAMLPACKS[]=
+
+OCAMLDEPFLAGS=
+OCAMLPPFLAGS=
+
+LIBFILES[] =
+   test
+
+LIB = ocamloscope_test
+
+MyOCamlPackage($(LIB), $(LIBFILES), $(EMPTY), $(EMPTY))

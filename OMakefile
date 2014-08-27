@@ -1,0 +1,104 @@
+# How-to-build using OMake
+#
+# cp OMakeroot.in OMakeroot # to create OMakeroot for the first time
+
+# If OMakeroot is here, include OMyMakefile
+if $(file-exists OMakeroot)
+   include OMyMakefile
+   export
+
+OCAMLWARNING_STOP_AT_ERROR_WARNING=true
+
+OCAMLPACKS[] =
+    spotlib
+    findlib
+    treeprint
+    orakuda
+    xml_conv
+    levenshtein
+
+CAMLP4PACKS[] = 
+    meta_conv
+    orakuda
+
+OCAMLFLAGS    += -thread
+
+OCAMLDEPFLAGS= -syntax camlp4o -package meta_conv.syntax,orakuda.syntax,pa_ounit.syntax
+OCAMLPPFLAGS = -syntax camlp4o -package meta_conv.syntax,orakuda.syntax,pa_ounit.syntax
+
+SHARED[]=
+    conf
+#    log
+    xSpotlib
+    xtest
+    fileDigest
+    xhashset
+    xpath
+    source
+    item
+    hashcons
+    hcons
+    odoc_fold
+    extract
+    analysis
+    oCamlDoc
+    loc
+    load
+    xpredef
+    xenv
+    spath
+    type_expr
+    stype_core
+    stype_print
+    stype_hcons
+    stype_conv
+    stype_test
+    stype
+    pathfix
+    util
+    cmfile
+    oCamlc
+    oPAM
+    module_path
+    oCamlFind
+    distthresh
+    match
+    xParser
+    query
+    cachedQuery
+    attr
+    printer
+    tests
+    stat
+
+FILES[] =
+    $(SHARED)
+    cli
+
+# Uses OCamlDoc modules
+OCAML_OTHER_LIBS += odoc_info
+OCAMLFLAGS    += -I +ocamldoc # ocamldoc is not exported as an OCamlFind package
+
+if $(not $(file-exists NOELIOM))
+  Subdirs()
+  export
+
+PROGRAM = oco
+NO_INSTALL=true
+MyOCamlProgram($(PROGRAM), $(FILES))
+MyOCamlLibrary(oco, $(SHARED))
+
+###### XParser.mly
+
+xParser.ml xParser.mli: xParser.mly
+    ocamlyacc xParser.mly
+    sed -e 's/type token =/type token = Parser.token =/' xParser.ml > xParser.ml.tmp
+    mv xParser.ml.tmp xParser.ml
+    sed -e 's/type token =/type token = Parser.token =/' xParser.mli > xParser.mli.tmp
+    mv xParser.mli.tmp xParser.mli
+
+
+# odoc_fold.ml: odoc/odoc_fold.ml
+#     cp odoc/odoc_fold.ml odoc_fold.ml
+
+WithOCamlVeryClean()

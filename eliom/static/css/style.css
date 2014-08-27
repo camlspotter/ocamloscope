@@ -1,0 +1,285 @@
+h1,h2,h3,ul,ol,li,p,html,body,address{
+	margin:0;
+	border:0;
+	padding:0;
+}
+
+a img {
+  border:none;
+}
+
+h1 {
+     text-align: center;
+}
+
+form {
+     text-align: center;
+}
+
+input {
+     font-size: 16px;
+     padding: 3px;
+}
+
+body {
+    padding-top:20px;
+    padding-bottom:20px;
+    /* width: 800px; */
+    margin: 0 30px 0 30px;
+    font-size: 16px;
+    font-family: Arial,Helvetica,Sans-Serif;
+}
+
+ul.examples {
+   border:2px solid #CCCC55;
+   padding:10px;
+   background-color: #FFFF88;
+}
+
+h2{
+   margin-top: 30px;
+   margin-bottom: 10px;
+}
+
+p,li {
+  margin: 5px 0;
+}
+
+li {
+   list-style-type: none;
+}
+
+address{
+   margin-top: 30px;
+   text-align: center;
+   font-size: 14px;
+}
+
+.search h1, .search form{
+   display: inline-block;
+}
+
+h1 img{
+   height:256px;
+   vertical-align: middle;
+}
+
+.search h1 img{
+   height:64px;
+   vertical-align: middle;
+}
+
+.search form {
+   margin-left:10px;
+}
+
+table {
+    /* width:800px; */
+    margin: 40px 0;
+    text-decolation: none;
+}
+
+td {
+      vertical-align: top;
+      padding-bottom: 5px;
+}
+
+td.entry {
+        /* width:650px; */
+        width:90%;
+	margin: 1px 0px 0px 0px;
+}
+
+div.line div {
+   display: inline-block;
+   vertical-align: top;
+}
+
+td.package_left{
+    width:200px;
+}
+
+.packages {
+    color: #006600;
+}
+
+.packages a:link	{ color: #006600; }
+.packages a:hover	{ color: #226622; }
+.packages a:active	{ color: #446644; }
+.packages a:visited	{ color: #004400; }
+
+div.group_head {
+    font-size: 16px;
+    font-weight: 200;
+    display: inline-block;
+}
+
+div.group_packages {
+    font-size: 13px;
+    /* font-weight: bold; */
+    margin: 2px 0px 5px 25px;
+}
+
+/* 8 entries distance:1 */
+div.count {
+    font-size: 13px;
+    font-weight: 400;
+    margin: 2px 0px 0px 0px;
+    color: rgb(0, 144, 48); /* currently overridden by a.toggleDisplay */
+}
+
+/* toggle button */
+a.toggleDisplay {
+    text-decoration: none;
+}
+
+a.toggleDisplay:visited	{ color: gray; }
+a.toggleDisplay:hover	{ color: gray; }
+a.toggleDisplay:active	{ color: gray; }
+a.toggleDisplay:link	{ color: gray; }
+
+span.distance {
+    color: #cccccc;
+}
+
+div.item {
+    color: rgb(64,64,64);
+    margin: 2px 0px 0px 0px;
+}
+
+div.packages {
+    padding: 2px 0px 2px 0px;
+    /* border-top: 1px solid #4096EE; */
+    /* background-color: #EEFFEE;     */
+}
+
+.info {
+    margin: 1px 0px 2px 15px;
+    color: #dd0000;
+}
+
+.name {
+    /* color: #eedd82; */
+    color: #774420;
+}
+
+.where .module * {
+	color:#008C00;
+}
+
+.package * {
+    font-size:13px;
+    color:#4096EE;
+}
+
+p.target { /* strange name */
+	 border-top: 1px solid #4096EE;
+	 background-color: #C3D9FF;
+	 padding: 5px;
+	 font-size:13px;
+}
+
+.status {
+    border-top: 1px solid #4096EE;
+    background-color: #C3D9FF;
+    padding: 5px;
+    font-size:13px;
+}
+
+table.pager {
+    margin-left: 20px;
+}
+
+table.packages {
+    margin-left: auto;
+    margin-right: auto;
+    font-size:13px;
+}
+
+table.packages thead {
+    border-top: 1px solid #4096EE;
+    background-color: #C3D9FF;
+    padding: 5px;
+}
+
+div.navigation {
+       font-size:13px;
+       margin-bottom:30px;
+}
+
+div.navigation div {
+	 display:inline-block;
+}
+
+div.navigation a {
+    text-decoration: none;
+}
+
+ul.jump {
+	 display:inline-block;
+}
+
+ul.jump li {
+	 display: inline-block;
+	 width: 50px;
+	 text-align: center;
+	 border:1px solid #808080;
+	 padding-top:3px;
+	 padding-bottom:3px;
+}
+
+ul.jump li:hover {
+	border-color: #4096EE;
+	background-color: #C3D9FF;
+}
+
+ul.jump li.current {
+	border-color: #4096EE;
+	background-color: #C3FFD9;
+}
+
+em {
+   font-weight: bold;
+   font-style: normal;
+}
+
+iframe {
+       border: 1px solid black;
+}
+
+ul.available-modules li {
+       display: inline;
+}
+
+div.center400 {
+    width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.examples a {
+       text-decoration: none;
+}
+
+span.sep {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+span.high {
+   font-weight: bold;
+}
+
+.source-line {
+    color: #888888;
+    padding-right: 10px;
+}
+
+.source-highlight {
+    background-color: #FFDD00;
+}
+
+div.source-link {
+    margin-left: 10px;
+}
+ 
