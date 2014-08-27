@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="OCamlOScope : OCaml API search engine">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>OCamlOScope</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/camlspotter/ocamloscope">View on GitHub</a>
+
+          <h1 id="project_title">OCamlOScope</h1>
+          <h2 id="project_tagline">OCaml API search engine</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/camlspotter/ocamloscope/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/camlspotter/ocamloscope/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="ocamlscope" class="anchor" href="#ocamlscope"><span class="octicon octicon-link"></span></a>OCaml◉Scope</h1>
+
+<p>A new OCaml API search by names and types. Currently available at <a href="http://ocamloscope.herokuapp.com/">http://ocamloscope.herokuapp.com/</a></p>
+
+<h2>
+<a name="technology" class="anchor" href="#technology"><span class="octicon octicon-link"></span></a>Technology</h2>
+
+<ul>
+<li>Edit distance based search</li>
+<li>On memory DB for speed</li>
+<li>OCamlFind/OPAM friendly</li>
+<li>No compiled source of packages is required at server side</li>
+<li>Eliom based server <a href="http://ocsigen.org/eliom/">http://ocsigen.org/eliom/</a>
+</li>
+</ul><h2>
+<a name="problems" class="anchor" href="#problems"><span class="octicon octicon-link"></span></a>Problems?</h2>
+
+<p>OCaml◉Scope is still under development. There are tons of to-dos and issues. Please report at <a href="https://github.com/camlspotter/ocamloscope/issues">https://github.com/camlspotter/ocamloscope/issues</a></p>
+
+<h2>
+<a name="faq" class="anchor" href="#faq"><span class="octicon octicon-link"></span></a>FAQ</h2>
+
+<h3>
+<a name="what-is-blahblah-in-results" class="anchor" href="#what-is-blahblah-in-results"><span class="octicon octicon-link"></span></a>What is {blahblah} in results?</h3>
+
+<p>This is OCamlFind package name. Module names are prefixed by their package names to distinguish modules with the same name but in different packages.</p>
+
+<h3>
+<a name="search-result-is-not-good" class="anchor" href="#search-result-is-not-good"><span class="octicon octicon-link"></span></a>Search result is not good.</h3>
+
+<p>I know. I am sorry but currently I am working on the server scalability rather than search quality.</p>
+
+<h3>
+<a name="why-not-by-type-unification" class="anchor" href="#why-not-by-type-unification"><span class="octicon octicon-link"></span></a>Why not by type unification?</h3>
+
+<p>Unification is cool, but not suitable for API search. It is slow and often misses what the user actually wants to find.</p>
+
+<h3>
+<a name="my-favorite-package-is-not-in-the-db" class="anchor" href="#my-favorite-package-is-not-in-the-db"><span class="octicon octicon-link"></span></a>My favorite package is not in the DB.</h3>
+
+<p>In future I release a tool to fetch search data from compiled and installed OPAM packages. You will be able to use it to pack the data and submit to OCaml◉Scope db repository. But not now.</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">OCamlOScope maintained by <a href="https://github.com/camlspotter">camlspotter</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
