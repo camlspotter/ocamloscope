@@ -1,0 +1,16 @@
+'b
+'a -> 'b
+int
+'a list
+{[pack]}.t -> 'b
+{*predef*}.string
+[< {*predef*}.string ]
+[< {*predef*}.string ] -> int
+[< `A | `B > `A ] -> int
+[< `A | {*predef*}.string > `A ] -> int
+[< {*predef*}.string > `A ] -> int
+(< .. > as 'a) -> 'a
+< .. > -> < .. >
+([ `A ] as 'a) -> 'a
+[ `A ] -> [ `A ]
+< m : [ `A ]; n : [ `A ] >
