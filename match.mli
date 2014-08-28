@@ -1,5 +1,5 @@
 module Make(A : sig 
-  val cache : Levenshtein.StringWithCache.cache
+  val cache : Levenshtein.StringWithHashtbl.cache
 end) : sig
 
   val error : bool ref (* for debug CR jfuruse: very dirty!*)

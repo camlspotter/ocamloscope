@@ -45,7 +45,7 @@ end
 
 module Make( A: sig
 
-  val cache : Levenshtein.StringWithCache.cache
+  val cache : Levenshtein.StringWithHashtbl.cache
 
 end) = struct
 
@@ -75,7 +75,11 @@ end) = struct
           let n = String.lowercase n
           and m = String.lowercase m in
           let upper_bound = min (min (String.length n / 3) 3) limit + 1 in (* CR jfuruse: should be configurable *)
-          let dist = Levenshtein.StringWithCache.distance A.cache ~upper_bound n m in
+          let dist = 
+            match Levenshtein.StringWithHashtbl.distance A.cache ~upper_bound n m with
+            | Levenshtein.Exact n -> n
+            | GEQ n -> n
+          in
           if dist >= upper_bound then fail
           else return (limit - dist, (m0, Some n0))
   
