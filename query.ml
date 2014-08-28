@@ -339,7 +339,7 @@ let group_results =
   *> sort_looks_by_popularity
 
 module Match = Match.Make(struct
-  let cache = Levenshtein.StringWithCache.Cache.create 1023
+  let cache = Levenshtein.StringWithHashtbl.create_cache 1023
 end)
 
 let full_query max_dist {kind= k_opt; path= lident_opt; type_= qtyp_opt; dist0 } i = 
