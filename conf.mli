@@ -10,3 +10,5 @@ val show_ocamldoc_message : bool
 val show_cache_loading : bool
 val show_scanned_ocamlfind_module_list : bool
 val show_stat : bool
+
+val prof_match_types : bool
