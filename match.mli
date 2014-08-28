@@ -17,4 +17,6 @@ end) : sig
   
   val match_path : Spath.t -> Spath.t -> int -> (int * Spath.t) option
   (** Returns distance, not score *)
+
+  val report_prof_type : unit -> unit
 end

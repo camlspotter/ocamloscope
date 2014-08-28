@@ -132,11 +132,36 @@ end) = struct
   
   let dummy_pattern_type_var = Any
   let dummy_type_expr_var = Var (-1)
-  
+
+  let hist_type = ref []
+
+  let prof_type pat targ =
+    if Conf.prof_match_types then
+      try 
+        let xs = assq pat !hist_type in
+        try 
+          let r = assq targ !xs in
+          incr r
+        with
+        | Not_found ->
+            xs := (targ, ref 1) :: !xs
+      with
+      | Not_found ->
+          hist_type := (pat, ref [(targ, ref 1)]) :: !hist_type
+    
+  let report_prof_type () =
+    if Conf.prof_match_types then
+      let distinct, total = 
+        fold_left (fun st (_, xs) ->
+          fold_left (fun (d,t) (_, r) -> (d+1, t + !r)) st !xs) (0,0) !hist_type
+      in
+      !!% "distinct=%d total=%d@." distinct total
+
   (* I never see good result with no_target_type_instantiate=false *)
   let match_type ?(no_target_type_instantiate=true) pattern target limit 
       : (TypeLimit.t * _) option
       =
+    prof_type pattern target;
     let open TypeLimit in
 
     (* We try to remember matches like 'a = 'var. 

@@ -402,8 +402,9 @@ let query items qs =
           end
             
     let full_query max_dist q i = 
-      let res = full_query max_dist q i in
-      res |- fun _ -> 
+      full_query max_dist q i
+      |- fun _ -> 
+        Match.report_prof_type ();
         if !Match.error then
           !!% "ERROR happened at match of %a@." Item.format i
       

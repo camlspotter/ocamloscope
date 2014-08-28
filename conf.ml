@@ -8,6 +8,7 @@ module M = struct
   let show_cache_loading = ref false
   let show_scanned_ocamlfind_module_list = ref false
   let show_stat = ref false
+  let prof_match_types = ref false
   let data_dir = ref "data"
 
   let () = 
@@ -20,6 +21,7 @@ module M = struct
                ; "--show-scanned-ocamlfind-module-list", Set show_scanned_ocamlfind_module_list, "show scanned OCamlFind modules"
                ; "--data-dir", Set_string data_dir, "data dir where oco_*.bin args are stored"
                ; "--show-stat", Set show_stat, "show db statistics, then exit"
+               ; "--prof-match-types", Set prof_match_types, "profile type matchings"
                ] 
     in
     parse (spec @ Xtest.arg_specs) f "oco"
@@ -32,6 +34,7 @@ let show_ocamldoc_message = !M.show_ocamldoc_message
 let show_cache_loading = !M.show_cache_loading
 let show_scanned_ocamlfind_module_list = !M.show_scanned_ocamlfind_module_list
 let show_stat = !M.show_stat
+let prof_match_types = !M.prof_match_types
 
 let data_dir = !M.data_dir
 
