@@ -92,7 +92,7 @@ type t = (OCamlFind.Packages.t,
 	  stype_t) record
 with conv(ocaml)
 
-(* do not hcons itself *)
+(* do not hcons itself: It is unlikely we have duped kinds throughout items *)
 let rec_hcons_k p = function
   | ClassField (vf, ty) -> ClassField (vf, Stype.rec_hcons ty)
   | Constr ty -> Constr (Stype.rec_hcons ty)
