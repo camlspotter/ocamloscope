@@ -1,6 +1,6 @@
 type t = { 
   path : Path.t;
-  loc  : Location.t;
+  loc  : Location.t * [ `Direct | `Unknown ];
   kind : Types.type_expr Item.kind;
   env  : (Ident.t * Path.t) list;  (** To replace local idents in [kind] by paths *)
 }

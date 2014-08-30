@@ -4,42 +4,9 @@ open Orakuda.Regexp.Infix
 
 let () = Lexer.init () (* We need this ... *)
 
-module Kind = struct
-  (* CR jfuruse: clean up required *)
-  type t = 
-    | Class 
-    | ClassField
-    | ClassType
-    | Constr
-    | Exception
-    | Field
-    | Method
-    | ModType
-    | Module
-    | Type
-    | Value 
-    | Package 
-    | ExactPackage (** we have an additional one to Item.kind *)
-  
-  let to_string = function
-    | Class        -> "class"
-    | ClassType    -> "class type" 
-    | ClassField   -> "class val" 
-    | Constr       -> "constr" 
-    | Exception    -> "exception"
-    | Field        -> "field"
-    | Method       -> "method"
-    | ModType      -> "module type"
-    | Module       -> "module"
-    | Type         -> "type"
-    | Value        -> "val"
-    | Package      -> "package"
-    | ExactPackage -> "exact_package"
-end
-  
 module Query = struct
   type t = 
-      { kind  : Kind.t  option;
+      { kind  : Kindkey.search option;
         path  : Spath.t option;
         type_ : Stype.t option;
         dist0 : bool;
@@ -54,7 +21,7 @@ module Query = struct
     ^
     begin match k with
     | None -> "*"
-    | Some k -> Kind.to_string k
+    | Some k -> Kindkey.to_string k
     end ^ " " ^
     begin match popt with
     | None -> "*"
@@ -107,30 +74,12 @@ module Query = struct
       with
       | _ -> None
   
-    (* CR jfuruse: parsing of kind is very ugly *)
-  
-    let parse_kind s =
-      let s = <:s<\s+/ /g>> s in
-      match s with
-      | "class"       -> Some Kind.Class
-      | "class val"   -> Some ClassField
-      | "class type"  -> Some ClassType
-      | "constr"      -> Some Constr
-      | "exception"   -> Some Exception
-      | "field"       -> Some Field
-      | "method"      -> Some Method
-      | "module type" -> Some ModType
-      | "module"      -> Some Module
-      | "type"        -> Some Type
-      | "val"         -> Some Value
-      | "package"     -> Some Package
-      | _ -> None
-  
     let prefixed str =
       let open Option.Open in
       try
+        (* CR jfuruse: parsing of kind is very ugly *)
         (str =~ <:m<(class|class\s+val|class\s+type|constr|exception|field|method|module|module\s+type|type|val|package)\s+>>) >>= fun res ->
-        parse_kind res#_1 >>= fun k ->
+        Kindkey.of_string res#_1 >>= fun k ->
         path res#_right >>= fun p ->
         return { kind=Some k; path=p.path; type_= None; dist0= false }
       with
@@ -139,8 +88,9 @@ module Query = struct
     let prefixed_and_type str =
       let open Option.Open in
       try
+        (* CR jfuruse: parsing of kind is very ugly *)
         (str =~ <:m<(class\s+val|constr|exception|field|method|val)\s+>>) >>= fun res ->
-        parse_kind res#_1 >>= fun k -> 
+        Kindkey.of_string res#_1 >>= fun k -> 
         path_type res#_right >>= fun res ->
         return { res with kind = Some k }
       with
@@ -344,7 +294,7 @@ let query items qs =
       let cache = Levenshtein.StringWithHashtbl.create_cache 1023
     end)
     
-    let full_query max_dist {kind= k_opt; path= lident_opt; type_= qtyp_opt; dist0 } i = 
+    let query_item max_dist {kind= k_opt; path= lident_opt; type_= qtyp_opt; dist0 } i = 
       let max_dist = if dist0 then 0 else max_dist in
       match i.Item.kind with
       (* Items without types *)
@@ -355,19 +305,19 @@ let query items qs =
       | Type _ 
       | Package _ ->
           begin match k_opt, i.Item.kind with
-            | (None | Some Kind.Class), Class 
-            | (None | Some ModType), ModType
-            | (None | Some Module), Module
-            | (None | Some Type), Type _
-            | (None | Some ClassType), ClassType
-            | (None | Some Package), Package _ ->
+            | (None | Some `Class), Class 
+            | (None | Some `ModType), ModType
+            | (None | Some `Module), Module
+            | (None | Some `Type), Type _
+            | (None | Some `ClassType), ClassType
+            | (None | Some `Package), Package _ ->
                 begin match lident_opt, qtyp_opt with
                 | None, None -> Some (10, `Nope)
                 | Some lid, None -> 
                     Option.map (fun (s, d) -> (s, `Path d)) & Match.match_path lid i.path (min max_dist 10)
                 | _, Some _ -> None
                 end
-            | Some ExactPackage, Package _ ->
+            | Some `ExactPackage, Package _ ->
                 begin match lident_opt, qtyp_opt with
                 | None, None -> None
                 | Some lid, None -> 
@@ -385,12 +335,12 @@ let query items qs =
       | Method _
       | Value _ -> 
           begin match k_opt, i.kind with
-          | (None | Some Kind.ClassField) , ClassField (_, typ)
-          | (None | Some Constr    ) , Constr typ
-          | (None | Some Exception ) , Exception typ
-          | (None | Some Field     ) , Field typ
-          | (None | Some Method    ) , Method (_, _, typ)
-          | (None | Some Value     ) , Value typ ->
+          | (None | Some `ClassField) , ClassField (_, typ)
+          | (None | Some `Constr    ) , Constr typ
+          | (None | Some `Exception ) , Exception typ
+          | (None | Some `Field     ) , Field typ
+          | (None | Some `Method    ) , Method (_, _, typ)
+          | (None | Some `Value     ) , Value typ ->
               begin match lident_opt, qtyp_opt with
               | None, None -> Some (10, `Nope)
               | Some lid, None -> Option.map (fun (s, d) -> s, `Path d) & Match.match_path lid i.path (min max_dist 10)
@@ -401,8 +351,8 @@ let query items qs =
           | _ -> None
           end
             
-    let full_query max_dist q i = 
-      full_query max_dist q i
+    let query_item max_dist q i = 
+      query_item max_dist q i
       |- fun _ -> 
         if !Match.error then
           !!% "ERROR happened at match of %a@." Item.format i
@@ -432,7 +382,7 @@ let query items qs =
                       | None -> min thresh 30
                       | Some (s, _) -> min thresh (s - 1)
                     in
-                    match full_query thresh q item with
+                    match query_item thresh q item with
                     | None -> st
                     | (Some _ as res) -> res) None qs
                 in

@@ -35,6 +35,7 @@ SHARED[]=
     xhashset
     xpath
     source
+    kindkey
     item
     hashcons
     hcons

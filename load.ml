@@ -55,7 +55,13 @@ let get_doc docs path loc desc =
       in
       `Ok (find docs)
 
-let rec load root find_packages path =
+let rec load root find_packages path 
+    : (Spath.t 
+       * (string * Location.t * [ `Direct | `Unknown ]) option 
+       * Stype.t Item.kind 
+       * [> `Error of unit | `Ok of OCamlDoc.t option ]
+      ) list
+    =
   Extract.reset_envs ();
 
   let cmt = match Cmt_format.read path with
@@ -65,7 +71,7 @@ let rec load root find_packages path =
 
   (* cmt.cmt_sourcefile is the actual source compiled, but 
      if the real source is .mll, then cmt_sourcefile is .ml and it is often automatically deleted! *)
-  let source_path loc = 
+  let source_path (loc, alias) = 
     (* CR jfuruse: Location.none means two things
        1. The compiler does not know the location
        2. It is package info
@@ -76,7 +82,7 @@ let rec load root find_packages path =
       let f1 = loc.Location.loc_start.Lexing.pos_fname in
       let f2 = loc.Location.loc_end.Lexing.pos_fname in
       assert (f1 == f2);
-      Some (cmt.cmt_builddir ^/ f1, loc)
+      Some (cmt.cmt_builddir ^/ f1, loc, alias)
     end
   in
 
@@ -117,17 +123,17 @@ let rec load root find_packages path =
   match cmt.cmt_annots with
   | Implementation str -> 
       let items = Extract.structure root str in
-      { Extract.path= root; loc= Location.none (* This should be the file itself *); env=[]; kind= Module } :: items
+      { Extract.path= root; loc= Location.none, `Direct (* This should be the file itself *); env=[]; kind= Module } :: items
       |> map (fun { Extract.path; loc; env; kind } -> 
         let kind = Pathfix.convert_kind (pathconv env) kind in
-        Spath.of_path path, source_path loc, kind, add_ocamldoc path loc kind)
+        Spath.of_path path, source_path loc, kind, add_ocamldoc path (fst loc) kind)
 
  |  Interface sg -> 
       let items = Extract.signature root sg in  
-      { Extract.path= root; loc= Location.none (* This should be the file itself *); env=[]; kind= Module } :: items
+      { Extract.path= root; loc= Location.none (* This should be the file itself *), `Direct; env=[]; kind= Module } :: items
       |> map (fun { Extract.path; loc; env; kind } -> 
         let kind = Pathfix.convert_kind (pathconv env) kind in
-        Spath.of_path path, source_path loc, kind, add_ocamldoc path loc kind)
+        Spath.of_path path, source_path loc, kind, add_ocamldoc path (fst loc) kind)
 
   | Packed (sg, paths) ->
       (* sg and paths must be coupled! *)
@@ -302,11 +308,11 @@ module Make(A : sig end) = struct
           d, normalize path
       in
 
-      let normalize_location (path0, loc) =
+      let normalize_location (path0, loc, a) =
         try
           (* CR jfuruse: path is only useful for debugging *)
           let d, pack = normalize_source path0 in
-          Loc.create d pack loc
+          Loc.create d pack loc a
         with
         | (Sys_error _ as e) -> 
             !!% "normalize_location Strange! %S@." path0;
