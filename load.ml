@@ -551,6 +551,12 @@ let load_dumped_items () =
   { items = Array.of_list items;
     ocamlfind_opam_table = ocamlfind_opam_table }
 
+let () =
+  let open Gc in
+  let c = get () in
+  set { c with max_overhead = 100 }
+
+
 let load_items () =
   let res, (stat_before, stat_after) = Gc.with_compacts load_dumped_items () in
   !!% "DB words: %.2fMb@." 
@@ -566,7 +572,9 @@ let hcons res =
     Hashcons.clear_all_tables ();
     res
   in
+  Gc.print_stat stderr; flush stderr;
   let (res, secs), (words_before, words_after) = XSpotlib.Gc.with_big_compacts hcons_things res in
+  Gc.print_stat stderr; flush stderr;
   !!% "HashConsing done in %f secs@." secs;
   !!% "Hcons words: %.2fMb@." 
     (float (words_after - words_before)
@@ -578,10 +586,10 @@ let load_items () =
 
     if Conf.show_cache_loading then !!% "Loading %s...@." final_cache_path;
     with_ic (open_in_bin final_cache_path) input_value
-      |- fun ( { items; _ } : db ) -> 
-	  !!% "%s : %d entries loaded@."
-	    final_cache_path
-            (Array.length items)
+    |- fun ( { items; _ } : db ) -> 
+      !!% "%s : %d entries loaded@."
+	final_cache_path
+        (Array.length items)
 
   end else begin
 
@@ -593,3 +601,13 @@ let load_items () =
         Marshal.(to_channel oc res [Compat_32]))
 
   end
+
+let load_items () =
+  load_items () 
+  |- fun _ ->
+    let words = XSpotlib.Gc.used_words () in
+    !!% "words: %d@." words;
+    Gc.print_stat stderr; flush stderr
+
+    
+
