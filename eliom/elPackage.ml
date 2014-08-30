@@ -89,10 +89,10 @@ let query name =
   let ppath = Spath.nhc_ident name in
   let res = 
     match
-      Query.query ElLoad.items (Some [ { Query.Query.kind= Some ExactPackage;
+      Query.query ElLoad.items (Some [ { Query.Query.kind= Some `ExactPackage;
                                          path= Some ppath;
                                          type_= None;
-                                         dist0= false }]) 
+                                         dist0= true }]) 
     with
     | `EmptyQuery | `Error | `Funny -> notfound name
     | `Ok (_, [_dist, (_, _, [_pkgs, [_id, i]])], search_time, group_time, _size) ->
