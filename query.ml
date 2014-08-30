@@ -404,7 +404,6 @@ let query items qs =
     let full_query max_dist q i = 
       full_query max_dist q i
       |- fun _ -> 
-        Match.report_prof_type ();
         if !Match.error then
           !!% "ERROR happened at match of %a@." Item.format i
       
@@ -454,7 +453,7 @@ let query items qs =
     
           `Ok (qs, final_result, search_time, group_time, size)
   end in
-  M.query items qs
+  M.query items qs |- fun _ -> M.Match.report_prof_type ()
 
 let search items query_string : QueryResult.t = 
   query items & Query.parse query_string
