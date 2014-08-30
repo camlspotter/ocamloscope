@@ -1124,7 +1124,7 @@ pattern_ident:
     UIDENT                                      { $1 }
   | LIDENT                                      { $1 }
   | UNDERSCORE                                  { "_" }
-  | STAR                                        { "_*_" }
+  | STAR                                        { "*" }
   | LPAREN operator RPAREN                      { $2 }
   | LPAREN UNDERSCORE RPAREN                    { "(_)" }
   | FALSE                                       { "false" }

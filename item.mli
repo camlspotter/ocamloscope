@@ -16,7 +16,10 @@ type 'typ kind =
   | Value      of 'typ 
   | Package    of OCamlFind.Package.t * string list (** top modules, ex. "Dbm" *)
 
+val kindkey_of_kind : 'a kind -> Kindkey.extracted
+
 val name_of_kind : 'a kind -> string
+
 val types_of_kind : 'a kind -> 'a list
 
 (* with conv(json) *)

@@ -25,19 +25,21 @@ type 'typ kind =
   | Package    of OCamlFind.Package.t * string list (** Ex. [ "Dbm" ] *)
 with conv(ocaml)
 
-let name_of_kind = function
-  | Class        -> "class"
-  | ClassType    -> "class type"
-  | ClassField _ -> "class val"
-  | Constr _     -> "constr"
-  | Exception _  -> "exception"
-  | Field _      -> "field"
-  | Method _     -> "method"
-  | ModType      -> "module type"
-  | Module       -> "module"
-  | Type _       -> "type"
-  | Value _      -> "val"
-  | Package _    -> "package"
+let kindkey_of_kind = function
+  | Class        -> `Class
+  | ClassType    -> `ClassType
+  | ClassField _ -> `ClassField
+  | Constr _     -> `Constr
+  | Exception _  -> `Exception
+  | Field _      -> `Field
+  | Method _     -> `Method
+  | ModType      -> `ModType
+  | Module       -> `Module
+  | Type _       -> `Type
+  | Value _      -> `Value
+  | Package _    -> `Package
+
+let name_of_kind x = Kindkey.to_string & kindkey_of_kind x
 
 let types_of_kind = function
   | ClassField (_, ty)
