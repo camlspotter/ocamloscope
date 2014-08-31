@@ -34,20 +34,4 @@ MyOCamlLibrary(ocoeliom, $(ELIOM_FILES))
 
 ocoeliom.cmxs: ../oco.cmxs
 
-# ##### simple eliom test
-# 
-# ELIOM_FILES[]=
-#     ElMisc
-#     ElServices
-#     ElTest
-# 
-# MyOCamlLibrary(etest, $(ELIOM_FILES))
-# 
-# .PHONY: etest
-# 
-# etest: etest.cmxs
-#     println("Starting server...")
-#     ocsigenserver.opt -c etest.conf
-#     # ocsigenserver -c oco.conf
-
 Subdirs()

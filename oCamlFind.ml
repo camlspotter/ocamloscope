@@ -185,11 +185,11 @@ let get_modules build_table ~stdlib_dir p =
                        while there is arith_flags.cmx!
                      *)
 (* CR jfuruse:
-Warning: No cmi file for /home/jun/.share/prefix/lib/ocaml/Condition
-Warning: No cmi file for /home/jun/.share/prefix/lib/ocaml/Event
-Warning: No cmi file for /home/jun/.share/prefix/lib/ocaml/Mutex
-Warning: No cmi file for /home/jun/.share/prefix/lib/ocaml/Thread
-Warning: No cmi file for /home/jun/.share/prefix/lib/ocaml/ThreadUnix
+Warning: No cmi file for /../lib/ocaml/Condition
+Warning: No cmi file for /../lib/ocaml/Event
+Warning: No cmi file for /../lib/ocaml/Mutex
+Warning: No cmi file for /../lib/ocaml/Thread
+Warning: No cmi file for /../lib/ocaml/ThreadUnix
 *)
                     !!% "Warning: No cmi file for %s@." & Module_path.to_string mpath;
                     None

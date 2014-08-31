@@ -55,7 +55,13 @@ let get_doc docs path loc desc =
       in
       `Ok (find docs)
 
-let rec load root find_packages path =
+let rec load root find_packages path 
+    : (Spath.t 
+       * (string * Location.t * [ `Direct | `Unknown ]) option 
+       * Stype.t Item.kind 
+       * [> `Error of unit | `Ok of OCamlDoc.t option ]
+      ) list
+    =
   Extract.reset_envs ();
 
   let cmt = match Cmt_format.read path with
@@ -65,7 +71,7 @@ let rec load root find_packages path =
 
   (* cmt.cmt_sourcefile is the actual source compiled, but 
      if the real source is .mll, then cmt_sourcefile is .ml and it is often automatically deleted! *)
-  let source_path loc = 
+  let source_path (loc, alias) = 
     (* CR jfuruse: Location.none means two things
        1. The compiler does not know the location
        2. It is package info
@@ -76,7 +82,7 @@ let rec load root find_packages path =
       let f1 = loc.Location.loc_start.Lexing.pos_fname in
       let f2 = loc.Location.loc_end.Lexing.pos_fname in
       assert (f1 == f2);
-      Some (cmt.cmt_builddir ^/ f1, loc)
+      Some (cmt.cmt_builddir ^/ f1, loc, alias)
     end
   in
 
@@ -117,17 +123,17 @@ let rec load root find_packages path =
   match cmt.cmt_annots with
   | Implementation str -> 
       let items = Extract.structure root str in
-      { Extract.path= root; loc= Location.none (* This should be the file itself *); env=[]; kind= Module } :: items
+      { Extract.path= root; loc= Location.none, `Direct (* This should be the file itself *); env=[]; kind= Module } :: items
       |> map (fun { Extract.path; loc; env; kind } -> 
         let kind = Pathfix.convert_kind (pathconv env) kind in
-        Spath.of_path path, source_path loc, kind, add_ocamldoc path loc kind)
+        Spath.of_path path, source_path loc, kind, add_ocamldoc path (fst loc) kind)
 
  |  Interface sg -> 
       let items = Extract.signature root sg in  
-      { Extract.path= root; loc= Location.none (* This should be the file itself *); env=[]; kind= Module } :: items
+      { Extract.path= root; loc= Location.none (* This should be the file itself *), `Direct; env=[]; kind= Module } :: items
       |> map (fun { Extract.path; loc; env; kind } -> 
         let kind = Pathfix.convert_kind (pathconv env) kind in
-        Spath.of_path path, source_path loc, kind, add_ocamldoc path loc kind)
+        Spath.of_path path, source_path loc, kind, add_ocamldoc path (fst loc) kind)
 
   | Packed (sg, paths) ->
       (* sg and paths must be coupled! *)
@@ -188,14 +194,13 @@ let load_predefined () : Item.t list =
       path = Spath.of_path path;
       loc = None;
       doc = `Ok (Some (build_ocamldoc kind));
-      kind;
-      alias = None }) items
+      kind; }) items
 
 let load packages find_packages path =
   let packs = OCamlFind.Packages.of_strings & map (fun x -> x.OCP.name) packages in
   let root = Spath.package_path & OCamlFind.Packages.to_id packs in
   let add_packages (path, loc, kind, doc) = 
-    { packs; path; loc; kind; doc; alias=None } 
+    { packs; path; loc; kind; doc; } 
   in
   try 
     !!% "Loading %s (%s)...@." path (Xpath.name root);
@@ -303,11 +308,11 @@ module Make(A : sig end) = struct
           d, normalize path
       in
 
-      let normalize_location (path0, loc) =
+      let normalize_location (path0, loc, a) =
         try
           (* CR jfuruse: path is only useful for debugging *)
           let d, pack = normalize_source path0 in
-          Loc.create d pack loc
+          Loc.create d pack loc a
         with
         | (Sys_error _ as e) -> 
             !!% "normalize_location Strange! %S@." path0;
@@ -362,8 +367,8 @@ module Make(A : sig end) = struct
 (* CR jfuruse: this is too fragile for deriving-ocsigen
 
 finding build file deriving_Show.cmi eee296967ce86703f0514ab2afd23c9e
-  found: deriving_Show.cmi /Users/jun/.opam/system/build/deriving-ocsigen.0.5/lib,
-                           /Users/jun/.opam/system/build/deriving.0.6.2/_build/lib
+  found: deriving_Show.cmi /.../.opam/system/build/deriving-ocsigen.0.5/lib,
+                           /.../.opam/system/build/deriving.0.6.2/_build/lib
 OCamlFind package deriving-ocsigen is provided by OPAM package None
 *)
 
@@ -390,7 +395,6 @@ OCamlFind package deriving-ocsigen is provided by OPAM package None
 		     loc = None;
 		     doc = `Ok None;
 		     kind = Package (p, mpaths);
-                     alias = None;
                    }
         in
   
@@ -553,6 +557,12 @@ let load_dumped_items () =
   { items = Array.of_list items;
     ocamlfind_opam_table = ocamlfind_opam_table }
 
+let () =
+  let open Gc in
+  let c = get () in
+  set { c with max_overhead = 100 }
+
+
 let load_items () =
   let res, (stat_before, stat_after) = Gc.with_compacts load_dumped_items () in
   !!% "DB words: %.2fMb@." 
@@ -568,7 +578,9 @@ let hcons res =
     Hashcons.clear_all_tables ();
     res
   in
+  Gc.print_stat stderr; flush stderr;
   let (res, secs), (words_before, words_after) = XSpotlib.Gc.with_big_compacts hcons_things res in
+  Gc.print_stat stderr; flush stderr;
   !!% "HashConsing done in %f secs@." secs;
   !!% "Hcons words: %.2fMb@." 
     (float (words_after - words_before)
@@ -580,10 +592,10 @@ let load_items () =
 
     if Conf.show_cache_loading then !!% "Loading %s...@." final_cache_path;
     with_ic (open_in_bin final_cache_path) input_value
-      |- fun ( { items; _ } : db ) -> 
-	  !!% "%s : %d entries loaded@."
-	    final_cache_path
-            (Array.length items)
+    |- fun ( { items; _ } : db ) -> 
+      !!% "%s : %d entries loaded@."
+	final_cache_path
+        (Array.length items)
 
   end else begin
 
@@ -595,3 +607,10 @@ let load_items () =
         Marshal.(to_channel oc res [Compat_32]))
 
   end
+
+let load_items () =
+  load_items () 
+  |- fun _ ->
+    let words = XSpotlib.Gc.used_words () in
+    !!% "words: %d@." words;
+    Gc.print_stat stderr; flush stderr

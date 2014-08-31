@@ -12,13 +12,16 @@ open Stype_core
 module Datatypes = Hashcons.Make(struct
   type t = datatype
   let equal dt1 dt2 = dt1.dt_path == dt2.dt_path
-  (* CR jfuruse: We ignore the alias information for now *)
+  (* We must ignore the alias information. *)
 
   let hash {dt_path=p} = Hashtbl.hash p
   let name = "datatype"
 end)
 
 let non_rec_hcons_datatype = Datatypes.non_rec_hcons
+
+let rec_hcons_datatype { dt_path=p; dt_aliases=r } = 
+  Datatypes.non_rec_hcons { dt_path = Spath.rec_hcons p; dt_aliases = r }
 
 module H = Hashcons.Make(struct
   type t = Stype_core.t
@@ -114,13 +117,10 @@ module H = Hashcons.Make(struct
     | _ -> false
 end)
 
-let rec_hcons_datatype { dt_path=p; dt_aliases=r } = 
-  Datatypes.non_rec_hcons { dt_path = Spath.rec_hcons p; dt_aliases = r }
-
 (* CR jfuruse: this is incredibly inefficient since it hconsgrep
    all the nodes 
 *)
-let rec_hcons =
+let rec_hcons ty0 =
 
   let nodes = ref [] in
 
@@ -130,7 +130,7 @@ let rec_hcons =
     | Link { contents = `Stub } -> assert false
     | Link { contents = `Linked ty' } ->
         if memq ty' !nodes then ty
-        else rec_hcons ty' (* no loop ? *)
+        else rec_hcons ty' (* no loop ? *) (* CR jfuruse: very strange ... *)
     | Nil -> ty
     | VariantClosed _ -> H.non_rec_hcons ty
     | Any -> ty
@@ -217,11 +217,12 @@ let rec_hcons =
     { xrow_fields; xrow_more; xrow_name; }
       
   in
-  rec_hcons
+  rec_hcons ty0
   
 let non_rec_hcons = H.non_rec_hcons
 
 (* CR jfuruse: this slow down rec_hcons x2 *)
+(*
 let rec_hcons ty =
   let ty' = rec_hcons ty in
   let ty'' = rec_hcons ty' in
@@ -229,3 +230,4 @@ let rec_hcons ty =
   else begin
     !!% "Oops rec_hcons failure %a@." Stype_core.format_via_type_expr ty; ty'
   end
+*)

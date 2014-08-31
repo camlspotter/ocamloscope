@@ -45,7 +45,7 @@ end
 
 module Make( A: sig
 
-  val cache : Levenshtein.StringWithCache.cache
+  val cache : Levenshtein.StringWithHashtbl.cache
 
 end) = struct
 
@@ -75,7 +75,11 @@ end) = struct
           let n = String.lowercase n
           and m = String.lowercase m in
           let upper_bound = min (min (String.length n / 3) 3) limit + 1 in (* CR jfuruse: should be configurable *)
-          let dist = Levenshtein.StringWithCache.distance A.cache ~upper_bound n m in
+          let dist = 
+            match Levenshtein.StringWithHashtbl.distance A.cache ~upper_bound n m with
+            | Levenshtein.Exact n -> n
+            | GEQ n -> n
+          in
           if dist >= upper_bound then fail
           else return (limit - dist, (m0, Some n0))
   
@@ -128,11 +132,36 @@ end) = struct
   
   let dummy_pattern_type_var = Any
   let dummy_type_expr_var = Var (-1)
-  
+
+  let hist_type = ref []
+
+  let prof_type pat targ =
+    if Conf.prof_match_types then
+      try 
+        let xs = assq pat !hist_type in
+        try 
+          let r = assq targ !xs in
+          incr r
+        with
+        | Not_found ->
+            xs := (targ, ref 1) :: !xs
+      with
+      | Not_found ->
+          hist_type := (pat, ref [(targ, ref 1)]) :: !hist_type
+    
+  let report_prof_type () =
+    if Conf.prof_match_types then
+      let distinct, total = 
+        fold_left (fun st (_, xs) ->
+          fold_left (fun (d,t) (_, r) -> (d+1, t + !r)) st !xs) (0,0) !hist_type
+      in
+      !!% "distinct=%d total=%d@." distinct total
+
   (* I never see good result with no_target_type_instantiate=false *)
   let match_type ?(no_target_type_instantiate=true) pattern target limit 
       : (TypeLimit.t * _) option
       =
+    prof_type pattern target;
     let open TypeLimit in
 
     (* We try to remember matches like 'a = 'var. 
@@ -140,7 +169,7 @@ end) = struct
        in order to give 'a = 'var higher score
        
        CRv2 jfuruse: We can extend this to var to non var type case,
-       since xtype is hcons-ed.  Ah, but we have subtyping...
+       since stype is hcons-ed.  Ah, but we have subtyping...
     *)
     let var_match_history = Hashtbl.create 107 in
   

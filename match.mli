@@ -1,5 +1,5 @@
 module Make(A : sig 
-  val cache : Levenshtein.StringWithCache.cache
+  val cache : Levenshtein.StringWithHashtbl.cache
 end) : sig
 
   val error : bool ref (* for debug CR jfuruse: very dirty!*)
@@ -17,4 +17,6 @@ end) : sig
   
   val match_path : Spath.t -> Spath.t -> int -> (int * Spath.t) option
   (** Returns distance, not score *)
+
+  val report_prof_type : unit -> unit
 end
