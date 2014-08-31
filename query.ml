@@ -43,7 +43,7 @@ module Query = struct
             |> XParser.pattern_longident Lexer.token
             |> Spath.of_longident
           in 
-          Some { kind = None; path= Some sitem; type_= None; dist0= false }
+          Some { kind = None; path= Some sitem; type_= None; dist0= false; }
         with
         | _ -> (* !!% "failed to parse as a path %S@." str; *) None
       in
@@ -53,7 +53,7 @@ module Query = struct
     let type_ s = 
       let open Option in
       Util.Result.to_option (Stype_print.read s) >>= fun ty ->
-      return { kind = None; path = None; type_= Some ty; dist0= false }
+      return { kind = None; path = None; type_= Some ty; dist0= false; }
   
     let path_type str =
       try
@@ -65,7 +65,7 @@ module Query = struct
         match p, t with
         | None, _ | _, None -> None
         | Some p, Some t ->
-            Some { kind= None; path= p.path; type_= t.type_; dist0= false }
+            Some { kind= None; path= p.path; type_= t.type_; dist0= false; }
   (*
         | Some {path = Some Lident ("_" | "_*_")}, 
           Some {type_ = Some { ptyp_desc= Ptyp_any }} -> 
@@ -81,7 +81,7 @@ module Query = struct
         (str =~ <:m<(class|class\s+val|class\s+type|constr|exception|field|method|module|module\s+type|type|val|package)\s+>>) >>= fun res ->
         Kindkey.of_string res#_1 >>= fun k ->
         path res#_right >>= fun p ->
-        return { kind=Some k; path=p.path; type_= None; dist0= false }
+        return { kind=Some k; path=p.path; type_= None; dist0= false; }
       with
       | _ -> None
   
@@ -370,7 +370,6 @@ let query items qs =
       | Some qs ->
           let qs = filter (not *< funny) qs in
     
-          (* This is bad, since '_' lists things twice! and the stack was overflown  *)
           let found, search_time = flip Unix.timed () & fun () ->
             Array.foldi_left 
               (fun st i item ->
@@ -443,7 +442,9 @@ let cli () =
 
   let module M = Tests.Do(struct let items = items end) in
 
-  if Conf.show_stat then begin Stat.report items; exit 0 end;
+  if Conf.show_stat then begin 
+    Stat.report items; exit 0 
+  end;
     
   cui items
 

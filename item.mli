@@ -42,3 +42,11 @@ with conv(ocaml_of)
 val rec_hcons : t -> t
 val format : Format.t -> t -> unit
 val format_gen : ?dont_omit_opened: bool -> Format.t -> t -> unit
+
+val arity_of_item : t -> int
+(** -1 for items with no type. *)
+
+val sort_items_by_arity : t array -> t array
+(** sort them from no type, arity 0 .. *)
+
+

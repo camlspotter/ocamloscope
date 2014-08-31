@@ -290,3 +290,28 @@ let format_gen ?(dont_omit_opened=false) ppf { packs; path; loc; doc; kind } =
         (Spath.format ()) path
 
 let format = format_gen ~dont_omit_opened:false
+
+let type_of_item i = match i.kind with
+  | ClassField (_, ty)
+  | Constr ty 
+  | Exception ty
+  | Field ty
+  | Value ty
+  | Method (_, _, ty)
+  | Type (_, Some ty, _) -> Some ty
+  | Type (_, None, _)
+  | Class
+  | ClassType 
+  | ModType
+  | Module
+  | Package _ -> None
+
+let arity_of_item i =
+  match type_of_item i with
+  | None -> -1
+  | Some ty -> length & fst & Stype.get_arrows ty
+
+let sort_items_by_arity items =
+  Array.sort (fun x y ->
+    compare (arity_of_item x) (arity_of_item y)) items;
+  items
