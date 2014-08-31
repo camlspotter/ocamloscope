@@ -1,0 +1,9 @@
+#!/bin/sh
+
+# ounit 2.0.0 has a bug of oUnit.cmxs. It misses oUnit2.cmx
+# https://forge.ocamlcore.org/tracker/index.php?func=detail&aid=1364&group_id=162&atid=730
+
+DIR=`ocamlfind query oUnit`
+
+cd $DIR
+ocamlopt -linkall -shared oUnit.cmxa -o oUnit.cmxs
