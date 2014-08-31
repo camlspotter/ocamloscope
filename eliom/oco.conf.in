@@ -1,0 +1,42 @@
+<ocsigen>
+  <server>
+    <port>@PORT@</port>
+    
+    <!-- @VAR@ = local/var -->
+    <logdir>@VAR@/log/oco</logdir>
+    <datadir>@VAR@/data/oco</datadir>
+    <charset>utf-8</charset>
+    
+    <commandpipe>@VAR@/run/oco-cmd</commandpipe>
+    <extension findlib-package="ocsigenserver.ext.staticmod"/>
+    <extension findlib-package="ocsigenserver.ext.ocsipersist-dbm">
+      <store dir="@VAR@/data/oco/ocsipersist"/>
+    </extension>
+    <extension findlib-package="eliom.server"/>
+    <extension findlib-package="compiler-libs.common"/>
+    <extension findlib-package="spotlib"/>
+    <extension findlib-package="findlib"/>
+    <extension findlib-package="treeprint"/>
+    <extension findlib-package="orakuda"/>
+    <extension findlib-package="tiny_json_conv"/>
+    <extension findlib-package="xml_conv"/>
+    <extension findlib-package="levenshtein"/>
+    <!-- ocamldoc has no META -->
+    <extension module="@OCAMLWHERE@/ocamldoc/odoc_info.cma"/>
+
+    <host defaulthostname="@HOST@" hostfilter="*">
+      <static dir="static" />
+      <static dir="@VAR@/www/oco/eliom" />
+      <eliommodule module="../oco.cma" />
+      <eliommodule module="ocoeliom.cma">
+	<!--
+	<record>
+	   <ping_path>pingpingping</ping_path>
+	   <self_ping_host>http://@HOST@</self_ping_host>
+	</record>
+	-->
+      </eliommodule>
+      <eliom/>
+    </host>
+  </server>
+</ocsigen>

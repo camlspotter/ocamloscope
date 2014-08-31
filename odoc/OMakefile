@@ -1,0 +1,36 @@
+OCAMLPACKS[] =
+    compiler-libs
+
+CAMLP4PACKS[] = 
+    pa_ovisitor
+
+OCAMLDEPFLAGS= -syntax camlp4o -package pa_ovisitor
+OCAMLPPFLAGS = -syntax camlp4o -package pa_ovisitor
+
+FILES[]=
+    odoc_types.ml
+    odoc_parameter.ml
+    odoc_type.ml
+    odoc_value.ml
+    odoc_class.ml
+    odoc_exception.ml
+    odoc_module.ml
+
+odoc.ml: $(FILES) odoc_head.ml $(Installed pa_ovisitor)
+    cat odoc_head.ml > odoc.ml
+    cat $(FILES) | sed -e 's/Odoc_[a-z]\+\.//g' -e 's/Name\.t/string/g' -e 's/^type /and /g' >> odoc.ml
+    echo "with ofold" >> odoc.ml
+
+%.out.ml: %.ml 
+    camlp4o -I $(OCAMLFIND_DESTDIR)/type_conv pa_type_conv.cma -I $(OCAMLFIND_DESTDIR)/pa_ovisitor pa_ovisitor.cma  -printer Camlp4OCamlPrinter $< > $@
+
+odoc.out.ml: odoc.ml
+
+odoc_fold.ml: odoc.out.ml odoc_fold_head.ml
+    cat odoc_fold_head.ml > $@
+    # -e '/PATTERN/,$p' : line including PATTERN and the rest
+    sed -n -e '/class.*ofold_/,$$p' odoc.out.ml >> $@ 
+
+# .DEFAULT: odoc.out.cmi
+
+AutoClean()

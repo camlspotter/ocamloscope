@@ -1,0 +1,41 @@
+<!-- DON'T EDIT THIS FILE! It is generated from oco.conf.in, edit that one, or the variables in Makefile.options -->
+<ocsigen>
+  <server>
+    <port>8080</port>
+    
+    <logdir>local/var/log/oco</logdir>
+    <datadir>local/var/data/oco</datadir>
+    <charset>utf-8</charset>
+    
+    <commandpipe>local/var/run/oco-cmd</commandpipe>
+    <extension findlib-package="ocsigenserver.ext.staticmod"/>
+<!--
+    <extension findlib-package="ocsigenserver.ext.ocsipersist-sqlite"/>
+-->
+    <extension findlib-package="ocsigenserver.ext.ocsipersist-dbm"/>
+    <extension findlib-package="eliom.server"/>
+    <extension findlib-package="compiler-libs.common"/>
+    <extension findlib-package="spotlib"/>
+    <extension findlib-package="findlib"/>
+    <extension findlib-package="treeprint"/>
+    <extension findlib-package="orakuda"/>
+    <extension findlib-package="tiny_json_conv"/>
+    <extension findlib-package="xml_conv"/>
+    <extension findlib-package="levenshtein"/>
+    <!-- ocamldoc has no META -->
+    <extension module="/Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cma"/>
+    
+    <!-- <host defaulthostname="localhost" hostfilter="localhost"> -->
+    <host>
+      <static dir="static" />
+      <static dir="local/var/www/oco/eliom" />
+      <eliommodule module="../oco.cma" />
+      <eliommodule module="ocoeliom.cma">
+	<record>
+	   <ocamlc_source_dir>/Users/jun/.share/projects/ocaml-github</ocamlc_source_dir>
+	</record>
+      </eliommodule>
+      <eliom/>
+    </host>
+  </server>
+</ocsigen>

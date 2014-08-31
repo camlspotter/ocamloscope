@@ -1,0 +1,53 @@
+OCAMLINCLUDES = $(dir .. . type_conv) # This fixes dependency analysis nicely!
+
+OCAMLDEPFLAGS= -syntax camlp4o -package orakuda.syntax,lwt.syntax
+OCAMLPPFLAGS = -syntax camlp4o -package orakuda.syntax,lwt.syntax
+
+NO_INSTALL=true
+
+# eliom.syntax adds open Eliom_Pervasives which may not be used
+OCAMLWARNING_IGNORE +=
+OCAMLWARNING_NON_ERROR += 32 33
+
+######## eliom
+
+OCAMLPACKS+= eliom.server
+
+ELIOM_FILES[]=
+    ocHttp
+    type_conv/elConfig
+    elLoad
+    elServices
+    elMisc
+    elLog
+#    elPing
+    elItem
+    elPager
+    elOPAM
+    elPackage
+    elSearch
+    elPackages
+    elSource
+    elBereth
+
+MyOCamlLibrary(ocoeliom, $(ELIOM_FILES))
+
+ocoeliom.cmxs: ../oco.cmxs
+
+# ##### simple eliom test
+# 
+# ELIOM_FILES[]=
+#     ElMisc
+#     ElServices
+#     ElTest
+# 
+# MyOCamlLibrary(etest, $(ELIOM_FILES))
+# 
+# .PHONY: etest
+# 
+# etest: etest.cmxs
+#     println("Starting server...")
+#     ocsigenserver.opt -c etest.conf
+#     # ocsigenserver -c oco.conf
+
+Subdirs()

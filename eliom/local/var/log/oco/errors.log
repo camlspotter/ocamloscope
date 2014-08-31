@@ -1,0 +1,12 @@
+Aug 24 05:18:48: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Failure("You need ocamlc_source_dir in your oco.conf")
+Aug 24 05:19:02: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Failure("You need ocamlc_source_dir in your oco.conf")
+Aug 24 05:21:27: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: File "elConfig.ml", line 39, characters 68-74: Assertion failed
+Aug 24 05:22:05: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: File "elConfig.ml", line 39, characters 68-74: Assertion failed
+Aug 24 05:22:52: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Unix.Unix_error(Unix.EINTR, "select", "")
+Aug 24 05:35:20: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Unix.Unix_error(Unix.EINTR, "select", "")
+Aug 24 11:16:37: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Unix.Unix_error(Unix.EINTR, "select", "")
+Aug 24 11:19:16: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Unix.Unix_error(Unix.EINTR, "select", "")
+Aug 24 11:21:03: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Invalid_argument("String.sub")
+Aug 24 11:29:59: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Failure("You need ocamlc_source_dir")
+Aug 24 11:30:04: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Invalid_argument("String.sub")
+Aug 24 11:31:01: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Invalid_argument("String.sub")

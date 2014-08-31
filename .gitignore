@@ -1,0 +1,15 @@
+*~
+*.omc
+*.o
+*.cm*
+*.annot
+*.a
+*.exe
+*.opt
+*.run
+.omakedb*
+xParser.ml
+xParser.mli
+NOELIOM
+*orig
+\#*
