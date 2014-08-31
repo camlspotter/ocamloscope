@@ -554,7 +554,7 @@ let load_dumped_items () =
       p.OCP.name
       (Format.option OPAM.format_package) opam_opt);
 
-  { items = Array.of_list items;
+  { items = Item.sort_items_by_arity (Array.of_list items);
     ocamlfind_opam_table = ocamlfind_opam_table }
 
 let () =

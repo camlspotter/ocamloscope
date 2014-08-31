@@ -312,8 +312,6 @@ end) = struct
             (* Some component might be missing in pattern, we fill variables for them
                but with a rather big price *)
             if len_pats < len_targets then
-              (* CR jfuruse: 1--n is very dangerous. I once wrote [1--n] aiming to produce a list of length n.
-                 But actually it is 1. *)
               map (fun _ -> dummy_pattern_type_var) (1 -- (len_targets - len_pats)) @ pats,
               map (fun target -> target, true) targets,
               (len_targets - len_pats) * 3
