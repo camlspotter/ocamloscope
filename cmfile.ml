@@ -204,16 +204,16 @@ let load_link_unit opam_build_table resolver_in_ocamlfind_package filename = (* 
     in
 
     (* We cannot use Spath since it introduce circular deps *)
-    let ppath filename = [ Module_path.(of_path filename |> modname) ] in
+    let spath filename = [ Module_path.(of_path filename |> modname) ] in
     let pmpath mpath = [ Module_path.modname mpath ] in
 
     match load filename with
     | Some (`CMO cu) -> 
         [mpath, CMIDigest.of_cu cu],
-        unique & get_packed opam_build_table filename & ppath filename
+        unique & get_packed opam_build_table filename & spath filename
     | Some (`CMX ui) -> 
         [mpath, CMIDigest.of_ui ui],
-        unique & get_packed opam_build_table filename & ppath filename
+        unique & get_packed opam_build_table filename & spath filename
     | Some (`CMA lib) ->
         let mpath_md5s = unique & get_mpath_md5s (map (fun u -> u.Cmo_format.cu_name, CMIDigest.of_cu u) lib.Cmo_format.lib_units) in
         mpath_md5s,

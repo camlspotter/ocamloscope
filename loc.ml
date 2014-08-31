@@ -28,7 +28,8 @@ type location_t = Location.t = {
 
 type t = { digest : Digest.t option;
            pack   : [ `None | `OCamlc of string | `OPAM of string ];
-           loc : location_t (* it contains path names... *)
+           loc : location_t; (* it contains path names... *)
+           alias  : [ `Direct | `Unknown ]
          } with conv(ocaml)
 
 let format ppf t = 
@@ -53,9 +54,11 @@ let rec_hcons t =
                       | `OCamlc s -> `OCamlc (Hcons.string s)
                       | `OPAM s -> `OPAM (Hcons.string s)
                     end;
-                    loc = Hcons.location t.loc }
+                    loc = Hcons.location t.loc;
+                    alias = t.alias;
+                  }
 
-let create digest pack loc = H.non_rec_hcons { digest; pack; loc }
+let create digest pack loc alias = H.non_rec_hcons { digest; pack; loc; alias }
 
 let id l = 
   flip Option.map l.digest (fun d ->

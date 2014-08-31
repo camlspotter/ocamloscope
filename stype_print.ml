@@ -263,7 +263,7 @@ let check_name_of_type t = ignore(name_of_type t)
 
 let is_optional = Btype.is_optional
 
-let tree_of_path (ppath : Spath.t) = ppath
+let tree_of_path (spath : Spath.t) = spath
 
 let rec tree_of_typexp sch ty =
   let ty = repr ty in
@@ -462,7 +462,7 @@ let ( ^-> ) =
 
 let ty_app = binop Left 100.0 ~op:space (* CR jfuruse: contiguous spaces must be contracted *)
 
-let tree ppath o = 
+let tree spath o = 
 
   let rec f o =
 
@@ -487,18 +487,18 @@ let tree ppath o =
              (f o1) (f o2)
     | Otyp_arrow (l, o1, o2) -> 
        (string (l ^ ":") ++ f o1) ^-> f o2
-    | Otyp_class (_, p, []) -> string "#" ++ ppath p
-    | Otyp_constr (p, []) ->  ppath p
-    | Otyp_class (_, p, os) -> box 2 & ty_app (typarams os) (string "#" ++ ppath p)
-    | Otyp_constr (p, os) -> box 2 & ty_app (typarams os) (ppath p)
+    | Otyp_class (_, p, []) -> string "#" ++ spath p
+    | Otyp_constr (p, []) ->  spath p
+    | Otyp_class (_, p, os) -> box 2 & ty_app (typarams os) (string "#" ++ spath p)
+    | Otyp_constr (p, os) -> box 2 & ty_app (typarams os) (spath p)
     | Otyp_link _o -> string "LINK"
     | Otyp_module (p, [], []) -> 
-        parens "(" ")" & string "module " ++ ppath p 
+        parens "(" ")" & string "module " ++ spath p 
     | Otyp_module (p, ps, os) -> 
-        parens "(" ")" & string "module " ++ ppath p ++ space 
+        parens "(" ")" & string "module " ++ spath p ++ space 
                          ++ list' (string "with ") (string "and  ")
                               (List.map2 (fun p o -> 
-                                string "type " ++ ppath p ++ string " = " ++ f o) ps os)
+                                string "type " ++ spath p ++ string " = " ++ f o) ps os)
                               nop
     | Otyp_object (los, None) ->  list' (string "< ") (string "; ") (List.map field los) (string " >")
     | Otyp_object (los, Some true) ->  list' (string "< ") (string "; ") (List.map field los @ [string ".."]) (string " >")
@@ -528,8 +528,8 @@ let tree ppath o =
         let fields = match fields_names with
           | `Ovar_fields (fields_tag, fields_inherit) -> 
               List.map row_field fields_tag @ List.map f fields_inherit
-          | `Ovar_name (id, []) -> [ ppath id ]
-          | `Ovar_name (id, tyl) -> [ box 2 & ty_app (typarams tyl) (ppath id) ]
+          | `Ovar_name (id, []) -> [ spath id ]
+          | `Ovar_name (id, tyl) -> [ box 2 & ty_app (typarams tyl) (spath id) ]
         in
         let direction, sep = 
           match closed, tags with
@@ -554,15 +554,15 @@ let tree ppath o =
   in
   f o
 
-let print ppath xty = 
+let print spath xty = 
   reset_and_mark_loops xty;
   let o = tree_of_typexp true xty in
-  tree ppath o
+  tree spath o
 
-let format_gen ppath ppf xty =
+let format_gen spath ppf xty =
   reset_and_mark_loops xty;
   let o = tree_of_typexp true xty in
-  Printer.format (tree ppath) ppf o
+  Printer.format (tree spath) ppf o
 
 let format = format_gen Spath.print
 

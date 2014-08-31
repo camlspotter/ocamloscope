@@ -111,7 +111,6 @@ let rec to_path = function
   | SPpredef -> Pident ( Ident.create_persistent "{*predef*}" )
   | SPattr (_, t) -> to_path t
 
-(* The result of recover_ppath may have different stamps... *) 
 let rec look_same p1 p2 =
   if p1 == p2 then true
   else match p1, p2 with

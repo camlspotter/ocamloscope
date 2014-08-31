@@ -1,26 +1,6 @@
-module Kind : sig
-  type t = 
-    | Class 
-    | ClassField
-    | ClassType
-    | Constr
-    | Exception
-    | Field
-    | Method
-    | ModType
-    | Module
-    | Type
-    | Value 
-    | Package 
-    | ExactPackage
-
-  val to_string : t -> string
-
-end
-
 module Query : sig
   type t = { 
-    kind  : Kind.t  option;
+    kind  : Kindkey.search option;
     path  : Spath.t option;
     type_ : Stype.t option;
     dist0 : bool; (** true then search only distance=0 *)

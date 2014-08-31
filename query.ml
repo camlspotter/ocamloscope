@@ -4,42 +4,9 @@ open Orakuda.Regexp.Infix
 
 let () = Lexer.init () (* We need this ... *)
 
-module Kind = struct
-  (* CR jfuruse: clean up required *)
-  type t = 
-    | Class 
-    | ClassField
-    | ClassType
-    | Constr
-    | Exception
-    | Field
-    | Method
-    | ModType
-    | Module
-    | Type
-    | Value 
-    | Package 
-    | ExactPackage (** we have an additional one to Item.kind *)
-  
-  let to_string = function
-    | Class        -> "class"
-    | ClassType    -> "class type" 
-    | ClassField   -> "class val" 
-    | Constr       -> "constr" 
-    | Exception    -> "exception"
-    | Field        -> "field"
-    | Method       -> "method"
-    | ModType      -> "module type"
-    | Module       -> "module"
-    | Type         -> "type"
-    | Value        -> "val"
-    | Package      -> "package"
-    | ExactPackage -> "exact_package"
-end
-  
 module Query = struct
   type t = 
-      { kind  : Kind.t  option;
+      { kind  : Kindkey.search option;
         path  : Spath.t option;
         type_ : Stype.t option;
         dist0 : bool;
@@ -54,7 +21,7 @@ module Query = struct
     ^
     begin match k with
     | None -> "*"
-    | Some k -> Kind.to_string k
+    | Some k -> Kindkey.to_string k
     end ^ " " ^
     begin match popt with
     | None -> "*"
@@ -107,30 +74,12 @@ module Query = struct
       with
       | _ -> None
   
-    (* CR jfuruse: parsing of kind is very ugly *)
-  
-    let parse_kind s =
-      let s = <:s<\s+/ /g>> s in
-      match s with
-      | "class"       -> Some Kind.Class
-      | "class val"   -> Some ClassField
-      | "class type"  -> Some ClassType
-      | "constr"      -> Some Constr
-      | "exception"   -> Some Exception
-      | "field"       -> Some Field
-      | "method"      -> Some Method
-      | "module type" -> Some ModType
-      | "module"      -> Some Module
-      | "type"        -> Some Type
-      | "val"         -> Some Value
-      | "package"     -> Some Package
-      | _ -> None
-  
     let prefixed str =
       let open Option.Open in
       try
+        (* CR jfuruse: parsing of kind is very ugly *)
         (str =~ <:m<(class|class\s+val|class\s+type|constr|exception|field|method|module|module\s+type|type|val|package)\s+>>) >>= fun res ->
-        parse_kind res#_1 >>= fun k ->
+        Kindkey.of_string res#_1 >>= fun k ->
         path res#_right >>= fun p ->
         return { kind=Some k; path=p.path; type_= None; dist0= false }
       with
@@ -139,8 +88,9 @@ module Query = struct
     let prefixed_and_type str =
       let open Option.Open in
       try
+        (* CR jfuruse: parsing of kind is very ugly *)
         (str =~ <:m<(class\s+val|constr|exception|field|method|val)\s+>>) >>= fun res ->
-        parse_kind res#_1 >>= fun k -> 
+        Kindkey.of_string res#_1 >>= fun k -> 
         path_type res#_right >>= fun res ->
         return { res with kind = Some k }
       with
@@ -277,7 +227,7 @@ let enrich_with_trace item (trace : trace) =
   { item with Item.path; kind }
 
 (** Rough textual length of Spath.t. (+) is counted as 1 *)
-let ppath_len = 
+let spath_len = 
   let rec len = function 
     | Spath.SPdot (SPpredef, s) -> String.length s
     | SPident id -> String.length id
@@ -319,7 +269,7 @@ let group_by_package
     map (fun iis ->
       let (_, i) = hd iis in
       i.Item.packs, 
-      sort_by (fun (_, item) -> ppath_len item.Item.path) iis)
+      sort_by (fun (_, item) -> spath_len item.Item.path) iis)
 
 (** Sort look group by popularity *)
 let sort_looks_by_popularity 
@@ -338,119 +288,122 @@ let group_results =
   *> map (fun (i, len, xs) -> (i, len, group_by_package xs))
   *> sort_looks_by_popularity
 
-module Match = Match.Make(struct
-  let cache = Levenshtein.StringWithCache.Cache.create 1023
-end)
-
-let full_query max_dist {kind= k_opt; path= lident_opt; type_= qtyp_opt; dist0 } i = 
-  let max_dist = if dist0 then 0 else max_dist in
-  match i.Item.kind with
-  (* Items without types *)
-  | Item.Class 
-  | ClassType
-  | ModType
-  | Module
-  | Type _ 
-  | Package _ ->
-      begin match k_opt, i.Item.kind with
-        | (None | Some Kind.Class), Class 
-        | (None | Some ModType), ModType
-        | (None | Some Module), Module
-        | (None | Some Type), Type _
-        | (None | Some ClassType), ClassType
-        | (None | Some Package), Package _ ->
-            begin match lident_opt, qtyp_opt with
-            | None, None -> Some (10, `Nope)
-            | Some lid, None -> 
-                Option.map (fun (s, d) -> (s, `Path d)) & Match.match_path lid i.path (min max_dist 10)
-            | _, Some _ -> None
-            end
-        | Some ExactPackage, Package _ ->
-            begin match lident_opt, qtyp_opt with
-            | None, None -> None
-            | Some lid, None -> 
-                Option.map (fun (s, d) -> (s, `Path d)) & Match.match_path lid i.path 0 (* exact match *)
-            | _, Some _ -> None
-            end
-        | _ -> None
-      end
-        
-  (* Items with types *)
-  | ClassField _
-  | Constr _
-  | Exception _
-  | Field _
-  | Method _
-  | Value _ -> 
-      begin match k_opt, i.kind with
-      | (None | Some Kind.ClassField) , ClassField (_, typ)
-      | (None | Some Constr    ) , Constr typ
-      | (None | Some Exception ) , Exception typ
-      | (None | Some Field     ) , Field typ
-      | (None | Some Method    ) , Method (_, _, typ)
-      | (None | Some Value     ) , Value typ ->
-          begin match lident_opt, qtyp_opt with
-          | None, None -> Some (10, `Nope)
-          | Some lid, None -> Option.map (fun (s, d) -> s, `Path d) & Match.match_path lid i.path (min max_dist 10)
-          | None, Some qtyp -> Option.map (fun (s, d) -> s, `Type d) & Match.match_type qtyp typ max_dist 
-          | Some lid, Some qtyp ->
-              Option.map (fun (s, ds) -> s, `PathType ds) & Match.match_path_type (lid,qtyp) (i.path,typ) (min max_dist 10) max_dist 
+let query items qs = 
+  let module M = struct
+    module Match = Match.Make(struct
+      let cache = Levenshtein.StringWithHashtbl.create_cache 1023
+    end)
+    
+    let query_item max_dist {kind= k_opt; path= lident_opt; type_= qtyp_opt; dist0 } i = 
+      let max_dist = if dist0 then 0 else max_dist in
+      match i.Item.kind with
+      (* Items without types *)
+      | Item.Class 
+      | ClassType
+      | ModType
+      | Module
+      | Type _ 
+      | Package _ ->
+          begin match k_opt, i.Item.kind with
+            | (None | Some `Class), Class 
+            | (None | Some `ModType), ModType
+            | (None | Some `Module), Module
+            | (None | Some `Type), Type _
+            | (None | Some `ClassType), ClassType
+            | (None | Some `Package), Package _ ->
+                begin match lident_opt, qtyp_opt with
+                | None, None -> Some (10, `Nope)
+                | Some lid, None -> 
+                    Option.map (fun (s, d) -> (s, `Path d)) & Match.match_path lid i.path (min max_dist 10)
+                | _, Some _ -> None
+                end
+            | Some `ExactPackage, Package _ ->
+                begin match lident_opt, qtyp_opt with
+                | None, None -> None
+                | Some lid, None -> 
+                    Option.map (fun (s, d) -> (s, `Path d)) & Match.match_path lid i.path 0 (* exact match *)
+                | _, Some _ -> None
+                end
+            | _ -> None
           end
-      | _ -> None
-      end
-        
-let full_query max_dist q i = 
-  Match.error := false;
-  let res = full_query max_dist q i in
-  res |- fun _ -> 
-    if !Match.error then
-      !!% "ERROR happened at match of %a@." Item.format i
-  
-let query items qs =
-  let funny = function
-    | { kind=_; path=None; type_=None } -> true
-    | _ -> false
-  in
-
-  match qs with
-  | None -> `EmptyQuery
-  | Some [] -> `Error
-  | Some qs when for_all funny qs -> `Funny
-  | Some qs ->
-      let qs = filter (not *< funny) qs in
-
-      (* This is bad, since '_' lists things twice! and the stack was overflown  *)
-      let found, search_time = flip Unix.timed () & fun () ->
-        Array.foldi_left 
-          (fun st i item ->
-            let thresh = Distthresh.thresh st in
-            let res =
-              fold_left (fun st q ->
-                (* If one q succeeds then we can cull the limit for the other qs *)
-                let thresh = match st with
-                  | None -> min thresh 30
-                  | Some (s, _) -> min thresh (s - 1)
+            
+      (* Items with types *)
+      | ClassField _
+      | Constr _
+      | Exception _
+      | Field _
+      | Method _
+      | Value _ -> 
+          begin match k_opt, i.kind with
+          | (None | Some `ClassField) , ClassField (_, typ)
+          | (None | Some `Constr    ) , Constr typ
+          | (None | Some `Exception ) , Exception typ
+          | (None | Some `Field     ) , Field typ
+          | (None | Some `Method    ) , Method (_, _, typ)
+          | (None | Some `Value     ) , Value typ ->
+              begin match lident_opt, qtyp_opt with
+              | None, None -> Some (10, `Nope)
+              | Some lid, None -> Option.map (fun (s, d) -> s, `Path d) & Match.match_path lid i.path (min max_dist 10)
+              | None, Some qtyp -> Option.map (fun (s, d) -> s, `Type d) & Match.match_type qtyp typ max_dist 
+              | Some lid, Some qtyp ->
+                  Option.map (fun (s, ds) -> s, `PathType ds) & Match.match_path_type (lid,qtyp) (i.path,typ) (min max_dist 10) max_dist 
+              end
+          | _ -> None
+          end
+            
+    let query_item max_dist q i = 
+      query_item max_dist q i
+      |- fun _ -> 
+        if !Match.error then
+          !!% "ERROR happened at match of %a@." Item.format i
+      
+    let query items qs =
+      let funny = function
+        | { kind=_; path=None; type_=None } -> true
+        | _ -> false
+      in
+    
+      match qs with
+      | None -> `EmptyQuery
+      | Some [] -> `Error
+      | Some qs when for_all funny qs -> `Funny
+      | Some qs ->
+          let qs = filter (not *< funny) qs in
+    
+          (* This is bad, since '_' lists things twice! and the stack was overflown  *)
+          let found, search_time = flip Unix.timed () & fun () ->
+            Array.foldi_left 
+              (fun st i item ->
+                let thresh = Distthresh.thresh st in
+                let res =
+                  fold_left (fun st q ->
+                    (* If one q succeeds then we can cull the limit for the other qs *)
+                    let thresh = match st with
+                      | None -> min thresh 30
+                      | Some (s, _) -> min thresh (s - 1)
+                    in
+                    match query_item thresh q item with
+                    | None -> st
+                    | (Some _ as res) -> res) None qs
                 in
-                match full_query thresh q item with
-                | None -> st
-                | (Some _ as res) -> res) None qs
+                match res with
+                | Some (dist, d) -> Distthresh.add st dist (i, item, d)
+                | None -> st) 
+              (Distthresh.create ~thresh:30 ~limit:200) 
+              items
+          in
+          let (final_result, size), group_time = flip Unix.timed () & fun () ->
+            let found = Distthresh.to_list found in
+            let size = map (fun (_, xs) -> length xs) found |> sum in
+            let group_scored_items (score, id_item_descs) = 
+              map (fun g -> (score,g)) & group_results id_item_descs 
             in
-            match res with
-            | Some (dist, d) -> Distthresh.add st dist (i, item, d)
-            | None -> st) 
-          (Distthresh.create ~thresh:30 ~limit:200) 
-          items
-      in
-      let (final_result, size), group_time = flip Unix.timed () & fun () ->
-        let found = Distthresh.to_list found in
-        let size = map (fun (_, xs) -> length xs) found |> sum in
-        let group_scored_items (score, id_item_descs) = 
-          map (fun g -> (score,g)) & group_results id_item_descs 
-        in
-        TR.concat_map group_scored_items found, size
-      in
-
-      `Ok (qs, final_result, search_time, group_time, size)
+            TR.concat_map group_scored_items found, size
+          in
+    
+          `Ok (qs, final_result, search_time, group_time, size)
+  end in
+  M.query items qs |- fun _ -> M.Match.report_prof_type ()
 
 let search items query_string : QueryResult.t = 
   query items & Query.parse query_string

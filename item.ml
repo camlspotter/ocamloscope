@@ -25,19 +25,21 @@ type 'typ kind =
   | Package    of OCamlFind.Package.t * string list (** Ex. [ "Dbm" ] *)
 with conv(ocaml)
 
-let name_of_kind = function
-  | Class        -> "class"
-  | ClassType    -> "class type"
-  | ClassField _ -> "class val"
-  | Constr _     -> "constr"
-  | Exception _  -> "exception"
-  | Field _      -> "field"
-  | Method _     -> "method"
-  | ModType      -> "module type"
-  | Module       -> "module"
-  | Type _       -> "type"
-  | Value _      -> "val"
-  | Package _    -> "package"
+let kindkey_of_kind = function
+  | Class        -> `Class
+  | ClassType    -> `ClassType
+  | ClassField _ -> `ClassField
+  | Constr _     -> `Constr
+  | Exception _  -> `Exception
+  | Field _      -> `Field
+  | Method _     -> `Method
+  | ModType      -> `ModType
+  | Module       -> `Module
+  | Type _       -> `Type
+  | Value _      -> `Value
+  | Package _    -> `Package
+
+let name_of_kind x = Kindkey.to_string & kindkey_of_kind x
 
 let types_of_kind = function
   | ClassField (_, ty)
@@ -60,7 +62,6 @@ type ('packs, 'path, 'loc, 'doc, 'typ)  record = {
     loc   : 'loc;
     doc   : 'doc;
     kind  : 'typ kind;
-    alias : 'path option 
   } with conv(ocaml)
 
 type ('a, 'b) result_t = [ `Ok of 'a | `Error of 'b ] with conv(ocaml) (* = Result.t *)
@@ -93,7 +94,7 @@ type t = (OCamlFind.Packages.t,
 	  stype_t) record
 with conv(ocaml)
 
-(* do not hcons itself *)
+(* do not hcons itself: It is unlikely we have duped kinds throughout items *)
 let rec_hcons_k p = function
   | ClassField (vf, ty) -> ClassField (vf, Stype.rec_hcons ty)
   | Constr ty -> Constr (Stype.rec_hcons ty)
