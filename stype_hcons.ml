@@ -233,30 +233,3 @@ let rec_hcons ty =
     !!% "Oops rec_hcons failure %a@." Stype_core.format_via_type_expr ty; ty'
   end
 *)
-
-let pack_types tys = 
-  let module M = struct
-    include Hashtbl.Make(HashedType) 
-    let to_list t =
-      let r = ref [] in
-      iter (fun k v -> r +::= (k,v)) t;
-      !r
-  end in
-  let tbl = M.create 1023 in
-  let ids = UniqueID.create () in
-  begin flip iter tys & fun ty ->
-    try 
-      let (id, count) = M.find tbl ty in
-      M.replace tbl ty (id, count+1)
-    with
-    | Not_found ->
-        let id = UniqueID.get ids in
-        M.add tbl ty (id, 1)
-  end;
-  !!% "%d different types@." & M.length tbl;
-  let sorted = sort (fun (_, (_,c)) (_, (_,c')) -> compare c' c) & M.to_list tbl in
-  iter (fun (k, (_,c)) ->
-    !!% "%d: @[%a@]@." c Stype_core.format_via_type_expr k) sorted
-  
-  
-          
