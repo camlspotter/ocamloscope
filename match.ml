@@ -310,18 +310,32 @@ end) = struct
     
           let pats, targets, penalty =
             (* Some component might be missing in pattern, we fill variables for them
-               but with a rather big price *)
+               but with a rather big price
+
+               At 8a9d320d4 :
+                   pattern: int -> int -> int -> int
+                   target:  nat -> int -> int -> nat -> int -> int -> int
+                   distance = 12 = 3 * (addition(3) + instance(1))
+
+               I think 2 arguments addition is enough
+                   2 * (addition(x) + 1) < 30
+               how about 7? (2*(7+1)=16 3*(7+1)=24<30 4(7+1)=32>30 
+            *)
             if len_pats < len_targets then
               map (fun _ -> dummy_pattern_type_var) (1 -- (len_targets - len_pats)) @ pats,
               map (fun target -> target, true) targets,
-              (len_targets - len_pats) * 3
+              (len_targets - len_pats) * 7
             else if len_pats > len_targets then
               (* The target can have less components than the pattern,
-                 but with huge penalty *)
+                 but with huge penalty
+
+                 At 8a9d320d4 : x5
+                 changed to     x10
+              *)
               pats,
               map (fun _ -> dummy_type_expr_var, false) (1 -- (len_pats - len_targets)) 
               @ map (fun target -> target, true) targets,
-              (len_pats - len_targets) * 5
+              (len_pats - len_targets) * 10
             else pats, map (fun x -> x, true) targets, 0
           in
   

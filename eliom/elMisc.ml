@@ -50,8 +50,8 @@ let issues =
   let service = 
     let open Eliom_parameter in
     Eliom_service.external_service 
-      ~prefix: "https://bitbucket.org"
-      ~path: [ "camlspotter"; "ocamloscope-server"; "issues" ]
+      ~prefix: "https://github.com"
+      ~path: [ "camlspotter"; "ocamloscope"; "issues" ]
       ~get_params: (string "status" ** string "status")
       ()
   in
