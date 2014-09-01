@@ -610,11 +610,11 @@ let load_items () =
 
 let load_items () =
   load_items () 
-  |- fun {items} ->
+  |- fun {items=_} ->
     let words = XSpotlib.Gc.used_words () in
     !!% "words: %d@." words;
     Gc.print_stat stderr; flush stderr;
+(*
     Item.pack_types items
-
-
-
+*)
+    ()    
