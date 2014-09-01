@@ -14,7 +14,7 @@ Required packages
 * ounit.2.0.0
 * eliom.3.0.3
 
-These packages should be available from OPAM (soon). 
+These packages should be available from OPAM. 
 
 Missing `cmxs` files
 ---------------------------
