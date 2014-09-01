@@ -19,6 +19,7 @@ let examples =
     ; ul ~a: [ a_class [ "examples" ] ]
       [ li [ example "'a list -> 'b list" ]
       ; li [ example "string list -> string" ]
+      ; li [ example "int -> int -> int" ]
       ; li [ example "concat" ]
       ; li [ example "(+)" ]
       ; li [ example "float : _" ]
