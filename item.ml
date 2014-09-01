@@ -315,3 +315,29 @@ let sort_items_by_arity items =
   Array.sort (fun x y ->
     compare (arity_of_item x) (arity_of_item y)) items;
   items
+
+let pack_types items = 
+  let module M = struct
+    include Hashtbl.Make(Stype_hcons.HashedType) 
+    let to_list t =
+      let r = ref [] in
+      iter (fun k v -> r +::= (k,v)) t;
+      !r
+  end in
+  let tbl = M.create 1023 in
+  let ids = UniqueID.create () in
+  Array.iter (fun i ->
+    match type_of_item i with
+    | None -> ()
+    | Some ty ->
+        try
+          let (id, count) = M.find tbl ty in
+          M.replace tbl ty (id, count+1)
+        with
+        | Not_found ->
+            let id = UniqueID.get ids in
+            M.add tbl ty (id, 1)) items;
+  !!% "%d different types@." & M.length tbl;
+  let sorted = List.sort (fun (_, (_,c)) (_, (_,c')) -> compare c' c) & M.to_list tbl in
+  iter (fun (_k, (_,c)) -> !!% "%d@." c) sorted
+

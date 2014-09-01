@@ -51,4 +51,6 @@ val sort_items_by_arity : t array -> t array
     Believed to help the efficiency of the type match algorithm.
 *)
 
+val pack_types : t array -> unit
+
 
