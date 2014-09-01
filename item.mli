@@ -47,6 +47,11 @@ val arity_of_item : t -> int
 (** -1 for items with no type. *)
 
 val sort_items_by_arity : t array -> t array
-(** sort them from no type, arity 0 .. *)
+(** Sort them from no type, arity 0 .. .
+    Believed to help the efficiency of the type match algorithm.
+*)
+
+val pack_types : t array -> unit
+
 
 
