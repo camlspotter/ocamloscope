@@ -288,6 +288,15 @@ let group_results =
   *> map (fun (i, len, xs) -> (i, len, group_by_package xs))
   *> sort_looks_by_popularity
 
+let rec funny_spath = function
+  | Spath.SPdot (t, "_") -> funny_spath t
+  | _ -> false
+
+let funny = function
+  | { kind=_; path=None; type_=(None | Some Stype.Any) } -> true
+  | { kind=_; path=Some t; type_=(None | Some Stype.Any) } -> funny_spath t
+  | _ -> false
+
 let query items qs = 
   let module M = struct
     module Match = Match.Make(struct
@@ -358,11 +367,6 @@ let query items qs =
           !!% "ERROR happened at match of %a@." Item.format i
       
     let query items qs =
-      let funny = function
-        | { kind=_; path=None; type_=None } -> true
-        | _ -> false
-      in
-    
       match qs with
       | None -> `EmptyQuery
       | Some [] -> `Error
