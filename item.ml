@@ -316,6 +316,7 @@ let sort_items_by_arity items =
     compare (arity_of_item x) (arity_of_item y)) items;
   items
 
+(* CR jfuruse: not used *) 
 let pack_types items = 
   let module M = struct
     include Hashtbl.Make(Stype_hcons.HashedType) 
@@ -340,4 +341,3 @@ let pack_types items =
   !!% "%d different types@." & M.length tbl;
   let sorted = List.sort (fun (_, (_,c)) (_, (_,c')) -> compare c' c) & M.to_list tbl in
   iter (fun (_k, (_,c)) -> !!% "%d@." c) sorted
-
