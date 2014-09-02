@@ -289,6 +289,7 @@ let group_results =
   *> sort_looks_by_popularity
 
 let rec funny_spath = function
+  | Spath.SPident "_" -> true
   | Spath.SPdot (t, "_") -> funny_spath t
   | _ -> false
 
