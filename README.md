@@ -1,10 +1,11 @@
 Installation
 ===========================
 
-Required packages
+Required softwares
 ---------------------------
 
 * OCaml 4.01.0 (Code is highly dependent on the specific compiler version. Do not try compiling with other versions.)
+* OPAM, findlib and OMake to build.
 * spotlib.2.4.1
 * meta_conv.1.1.4
 * orakuda.1.2.1
@@ -14,7 +15,7 @@ Required packages
 * ounit.2.0.0
 * eliom.3.0.3
 
-These packages should be available from OPAM. 
+These packages should be available from OPAM. Windows is not supported.
 
 Missing `cmxs` files
 ---------------------------
