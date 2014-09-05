@@ -13,7 +13,7 @@ type extracted =
   | `Package
   ]
 
-type search = [ extracted | `ExactPackage ]
+type search = extracted
 
 type all = search
 

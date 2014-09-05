@@ -13,7 +13,7 @@ type extracted =
   | `Package
   ]
 
-type search = [ extracted | `ExactPackage ]
+type search = extracted
 
 type all = search
 
@@ -30,7 +30,6 @@ let to_string = function
   | `Type         -> "type"
   | `Value        -> "val"
   | `Package      -> "package"
-  | `ExactPackage -> "exact_package"
 
 let of_string s = 
   (* CR jfuruse: parsing of kind is very ugly *)
@@ -48,6 +47,5 @@ let of_string s =
   | "type"          -> Some `Type
   | "val"           -> Some `Value
   | "package"       -> Some `Package
-  | "exact package" -> Some `ExactPackage
   | _ -> None
 

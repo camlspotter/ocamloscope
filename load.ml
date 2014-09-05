@@ -496,15 +496,19 @@ let dump_items () =
   let module D = Make(struct end) in
   D.dump_items ()
 
-type db = {
-  items : Item.t array;
-  ocamlfind_opam_table : (OCP.t * OPAM.package option) list;
-  (** List of the top OCamlFind packages
-      and the OPAM package which installed it if exists.
+module DB = struct
+  type t = {
+    items : Item.t array;
+    ocamlfind_opam_table : (OCP.t * OPAM.package option) list;
+    (** List of the top OCamlFind packages
+        and the OPAM package which installed it if exists.
+  
+        Note: it lists only the top packages.
+    *)
+  }
+end
 
-      Note: it lists only the top packages.
-  *)
-}
+open DB
 
 (* Load a data file *)
 let load_dumped_package_group path : dump_file =
@@ -572,7 +576,7 @@ let load_items () =
 
 let hcons res =
   !!% "HashConsing...@.";
-  let hcons_things (res : db) = flip Unix.timed () & fun () -> 
+  let hcons_things (res : DB.t) = flip Unix.timed () & fun () -> 
     let res = { res with items = Array.map Item.rec_hcons res.items } in
     Hashcons.report ();
     Hashcons.clear_all_tables ();
@@ -592,7 +596,7 @@ let load_items () =
 
     if Conf.show_cache_loading then !!% "Loading %s...@." final_cache_path;
     with_ic (open_in_bin final_cache_path) input_value
-    |- fun ( { items; _ } : db ) -> 
+    |- fun ( { items; _ } : DB.t ) -> 
       !!% "%s : %d entries loaded@."
 	final_cache_path
         (Array.length items)
@@ -610,9 +614,25 @@ let load_items () =
 
 let load_items () =
   load_items () 
-  |- fun {items=_} ->
+  |- fun _ ->
     let words = XSpotlib.Gc.used_words () in
     !!% "words: %d@." words;
     Gc.print_stat stderr; flush stderr;
-    (* Item.pack_types items *)
-    ()
+      
+module PooledDB = struct
+  type t = {
+    items : Item.pooled array;
+    types : Stype.t array;
+    ocamlfind_opam_table : (OCP.t * OPAM.package option) list;
+    (** List of the top OCamlFind packages
+        and the OPAM package which installed it if exists.
+  
+        Note: it lists only the top packages.
+    *)
+  }
+      
+  let poolize db = 
+    let items, types = Stype_pool.poolize db.DB.items in
+    { items; types; ocamlfind_opam_table = db.DB.ocamlfind_opam_table }
+
+end

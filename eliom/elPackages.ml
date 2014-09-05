@@ -12,7 +12,7 @@ let the_table =
   in
   let oc_compare oc1 oc2 = compare oc1.OCamlFind.Package.name oc2.OCamlFind.Package.name in
   let trs = 
-    ElLoad.ocamlfind_opam_table
+    ElLoad.db.Load.PooledDB.ocamlfind_opam_table
     |> List.sort (fun (oc1,op1) (oc2,op2) ->
       match Option.map (fun x -> x.OPAM.name) op1, Option.map (fun x -> x.OPAM.name) op2 with
       | Some "base", Some "base" -> oc_compare oc1 oc2

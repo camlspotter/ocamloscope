@@ -28,7 +28,8 @@ let ppath
       ?just_postfix
       ?opened
       p = 
-  print (Spath.print ?remove_package_names
+  print (Spath.print ~packages:`Nick
+                     ?remove_package_names
                      ?just_postfix
                      ?opened
                      p
@@ -98,25 +99,12 @@ let kind = function
   | Value _ -> []
   | k -> [ !$ (Item.name_of_kind k); space ] 
 
-(* CR jfuruse: short look is already calculated at grouping,
-               therefore we should not calculate it here again. *)
 let entry_group_head p k =
 
   let html_postfix = 
     span_class "path" 
     & ppath (*~just_postfix:true*) p
   in
-
-(*
-  let rec opened = function
-    | Spath.SPdot (p, _) -> Some p
-    | Spath.SPattr (_, p) -> opened p
-    | _ -> None
-  in
-
-  let colon_type = colon_type & opened p in
-  let equal_type = equal_type & opened p in
-*)
 
   let colon_type = colon_type None in
   let equal_type = equal_type None in
@@ -322,8 +310,8 @@ let entry_group_body_per_package (ps, iis) =
     ; div_class "items" & List.map entry_group_body_elem iis
     ]
 
-type is = (Item.t (** short look *) * int (** look_length *)
-           * (OCamlFind.Packages.t * (int * Item.t) list) list) 
+type is = Item.t (** short look *) * int (** look_length *)
+          * (OCamlFind.Packages.t * (int * Item.t) list) list 
 
 let entry_group dist (is : is) =
   let (short_look, _, xs) = is in

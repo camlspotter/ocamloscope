@@ -54,6 +54,7 @@ SHARED[]=
     stype_hcons
     stype_conv
     stype_test
+    stype_pool
     stype
     pathfix
     util

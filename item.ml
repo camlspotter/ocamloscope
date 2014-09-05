@@ -87,11 +87,23 @@ let stype_t_of_ocaml ?trace x =
 
 let _stype_t_of_ocaml_exn = Ocaml_conv.exn stype_t_of_ocaml
 
+type pooled_type = 
+  | Not_pooled of stype_t
+  | Pooled of int
+with conv(ocaml)
+
 type t = (OCamlFind.Packages.t,
 	  spath_t, 
 	  Loc.t option, 
-	  (OCamlDoc.t option, unit) result_t,
-	  stype_t) record
+          (OCamlDoc.t option, unit) result_t,
+          stype_t) record
+with conv(ocaml)
+
+type pooled = (OCamlFind.Packages.t,
+	       spath_t, 
+	       Loc.t option, 
+	       (OCamlDoc.t option, unit) result_t,
+	       pooled_type) record
 with conv(ocaml)
 
 (* do not hcons itself: It is unlikely we have duped kinds throughout items *)

@@ -35,9 +35,20 @@ type ('packs, 'path, 'loc, 'doc, 'typ)  record = {
 type t = (OCamlFind.Packages.t,
 	  Spath.t, 
 	  Loc.t option, 
-	  (Odoc_info.info option, unit) Result.t,
-	  Stype.t) record
-with conv(ocaml_of)
+	  (OCamlDoc.t option, unit) Result.t,
+          Stype.t) record
+with conv(ocaml)
+
+type pooled_type = 
+  | Not_pooled of Stype.t
+  | Pooled of int
+
+type pooled = (OCamlFind.Packages.t,
+	       Spath.t, 
+	       Loc.t option, 
+	       (OCamlDoc.t option, unit) Result.t,
+	       pooled_type) record
+with conv(ocaml)
 
 val rec_hcons : t -> t
 val format : Format.t -> t -> unit
@@ -50,5 +61,7 @@ val sort_items_by_arity : t array -> t array
 (** Sort them from no type, arity 0 .. .
     Believed to help the efficiency of the type match algorithm.
 *)
+
+val type_of_item : (_, _, _, _, 'a) record -> 'a option
 
 val pack_types : t array -> unit

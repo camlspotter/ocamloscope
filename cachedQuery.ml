@@ -1,5 +1,6 @@
 open Spotlib.Spot
 open Query
+open List
 
 (** Prevent searching the same thing many times in the Web page interface *)
 
@@ -189,9 +190,6 @@ module TotalHistory = struct
     else `Error `Checksum_failure
 
   let query items stamp user qs =
-    match qs with
-    | None -> query items qs, false (* no caching for empty query *)
-    | Some qs ->
         let make_tq res = 
             { TimedQuery.stamp;
               queries = qs;
@@ -207,7 +205,7 @@ module TotalHistory = struct
         in
         match Raw.find qs with
         | None -> 
-            let res = query items (Some qs) in
+            let res = query items qs in
             let tq = make_tq res in
             update_user (fun uh ->
               let uh, _incred = UserHistory.add tq uh in
@@ -252,8 +250,12 @@ let query items user qs =
           print_state ();
           res, `Ok hit
 
-let search items user query_string = query items user & Query.parse query_string
-
+let search items user query_string = 
+  match Query.parse query_string with
+  | None -> `EmptyQuery, `Ok false
+  | Some [] -> `Error, `Ok false
+  | Some qs when for_all funny qs -> `Funny, `Ok false
+  | Some qs -> query items user & filter (not *< funny) qs
 
 
 
