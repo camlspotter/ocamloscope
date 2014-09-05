@@ -636,4 +636,3 @@ module PooledDB = struct
     { items; types; ocamlfind_opam_table = db.DB.ocamlfind_opam_table }
 
 end
->>>>>>> priv

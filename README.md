@@ -1,10 +1,11 @@
 Installation
 ===========================
 
-Required packages
+Required softwares
 ---------------------------
 
 * OCaml 4.01.0 (Code is highly dependent on the specific compiler version. Do not try compiling with other versions.)
+* OPAM, findlib and OMake to build.
 * spotlib.2.4.1
 * meta_conv.1.1.4
 * orakuda.1.2.1
@@ -14,7 +15,10 @@ Required packages
 * ounit.2.0.0
 * eliom.3.0.3
 
-These packages should be available from OPAM (soon). 
+These packages should be available from OPAM. Windows is not supported.
+
+OPAM package for OCamlOScope is not yet available... since it requires the following mending of external softwares.
+
 
 Missing `cmxs` files
 ---------------------------
@@ -46,7 +50,10 @@ The following command should scrape the OCaml compiler source code and all the i
 $ ./oco -d -c <ocaml compiler source dir>
 ```
 
-After scraping, `oco` goes to its console query mode.
+How to query locally
+---------------------------
+
+After scraping, `oco` goes to its console query mode against the dumped data file.
 
 How to start Eliom server
 ---------------------------------
