@@ -29,15 +29,17 @@ module QueryResult : sig
 end
 
 val query :
-  Item.t array
-  -> Query.t list option
+  Load.PooledDB.t
+  -> Query.t list
   -> QueryResult.t
 
+val funny : Query.t -> bool
+
 val search :
-  Item.t array
+  Load.PooledDB.t
   -> string 
   -> QueryResult.t
 
-val cui : Item.t array -> 'a
+val cui : Load.PooledDB.t -> 'loop
 
 val cli : unit -> unit

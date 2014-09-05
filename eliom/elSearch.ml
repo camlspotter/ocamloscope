@@ -19,6 +19,7 @@ let examples =
     ; ul ~a: [ a_class [ "examples" ] ]
       [ li [ example "'a list -> 'b list" ]
       ; li [ example "string list -> string" ]
+      ; li [ example "int -> int -> int" ]
       ; li [ example "concat" ]
       ; li [ example "(+)" ]
       ; li [ example "float : _" ]
@@ -74,16 +75,15 @@ type groups =
         * (OCamlFind.Packages.t * (int * Item.t) list) list)
     ) list
 
-let found qs q search_time group_time cache_hit_status (groups : groups) page ~size =
-  status (List.length groups) size search_time group_time cache_hit_status qs
+let found f qs q search_time group_time cache_hit_status gs page ~size =
+  status (List.length gs) size search_time group_time cache_hit_status qs
   :: ElPager.pager 
-         ~item:ElItem.group
+         ~item:f
          ~here:(fun n -> div_class "here" [ !$ (string_of_int n) ])
          ~next:(fun n -> hlink_query ~pos:n q [ div_class "next" [ !$ "Next" ] ])
          ~prev:(fun n -> hlink_query ~pos:n q [ div_class "prev" [ !$ "Prev" ] ])
          ~goto:(fun n -> hlink_query ~pos:n q [ div_class "goto" [ !$ (string_of_int n) ] ])
-         (* List.(map (fun (_, iss as g) -> g, fold_left (fun st is -> st + length is) 0 iss) groups) *)
-         List.(map (fun g -> g, 1) groups)
+         List.(map (fun g -> g, 1) gs)
          page
 
 let notfound qs = 
@@ -101,7 +101,7 @@ let error =
   ]
 
 let query q nopt = 
-  match CachedQuery.search ElLoad.items 0 q with
+  match CachedQuery.search ElLoad.db 0 q with
   | `EmptyQuery, _ -> index
   | res ->
       Lwt.return 
@@ -115,8 +115,8 @@ let query q nopt =
                  | `Error, _ -> error
                  | `Funny, _ -> funny
                  | `Ok (qs, groups, search_time, result_time, size), cache_hit_status -> 
-                     found qs q search_time result_time cache_hit_status groups (Option.default nopt & fun () -> 1) ~size) 
-  
+                     found ElItem.group qs q search_time result_time cache_hit_status groups (Option.default nopt & fun () -> 1) ~size )
+
 let () = 
   prerr_endline "Registering search service...";
   Eliom_registration.Html5.register

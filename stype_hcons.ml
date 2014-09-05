@@ -23,7 +23,7 @@ let non_rec_hcons_datatype = Datatypes.non_rec_hcons
 let rec_hcons_datatype { dt_path=p; dt_aliases=r } = 
   Datatypes.non_rec_hcons { dt_path = Spath.rec_hcons p; dt_aliases = r }
 
-module H = Hashcons.Make(struct
+module HashedType = struct
   type t = Stype_core.t
   let hash = Hashtbl.hash
 
@@ -115,7 +115,9 @@ module H = Hashcons.Make(struct
          )   
 *)
     | _ -> false
-end)
+end
+
+module H = Hashcons.Make(HashedType)
 
 (* CR jfuruse: this is incredibly inefficient since it hconsgrep
    all the nodes 

@@ -17,7 +17,7 @@ form {
 }
 
 input {
-     font-size: 16px;
+     font-size: 20px;
      padding: 3px;
 }
 
@@ -26,7 +26,7 @@ body {
     padding-bottom:20px;
     /* width: 800px; */
     margin: 0 30px 0 30px;
-    font-size: 16px;
+    font-size: 20px;
     font-family: Arial,Helvetica,Sans-Serif;
 }
 
@@ -52,7 +52,7 @@ li {
 address{
    margin-top: 30px;
    text-align: center;
-   font-size: 14px;
+   font-size: 16px;
 }
 
 .search h1, .search form{
@@ -71,6 +71,10 @@ h1 img{
 
 .search form {
    margin-left:10px;
+}
+
+input {
+   width: 300px
 }
 
 table {
@@ -109,20 +113,20 @@ td.package_left{
 .packages a:visited	{ color: #004400; }
 
 div.group_head {
-    font-size: 16px;
+    font-size: 20px;
     font-weight: 200;
     display: inline-block;
 }
 
 div.group_packages {
-    font-size: 13px;
+    font-size: 18px;
     /* font-weight: bold; */
     margin: 2px 0px 5px 25px;
 }
 
 /* 8 entries distance:1 */
 div.count {
-    font-size: 13px;
+    font-size: 18px;
     font-weight: 400;
     margin: 2px 0px 0px 0px;
     color: rgb(0, 144, 48); /* currently overridden by a.toggleDisplay */
@@ -168,7 +172,7 @@ div.packages {
 }
 
 .package * {
-    font-size:13px;
+    font-size:18px;
     color:#4096EE;
 }
 
@@ -176,14 +180,14 @@ p.target { /* strange name */
 	 border-top: 1px solid #4096EE;
 	 background-color: #C3D9FF;
 	 padding: 5px;
-	 font-size:13px;
+	 font-size:18px;
 }
 
 .status {
     border-top: 1px solid #4096EE;
     background-color: #C3D9FF;
     padding: 5px;
-    font-size:13px;
+    font-size:18px;
 }
 
 table.pager {
@@ -193,7 +197,7 @@ table.pager {
 table.packages {
     margin-left: auto;
     margin-right: auto;
-    font-size:13px;
+    font-size:18px;
 }
 
 table.packages thead {
@@ -203,7 +207,7 @@ table.packages thead {
 }
 
 div.navigation {
-       font-size:13px;
+       font-size:18px;
        margin-bottom:30px;
 }
 

@@ -1,0 +1,10 @@
+
+####### log
+
+PROGRAM = accesslog
+NO_INSTALL=true
+FILES[] = 
+    accesslog
+OCAMLPACKS[] += netstring
+MyOCamlProgram($(PROGRAM), $(FILES))
+

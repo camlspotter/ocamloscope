@@ -10,13 +10,13 @@ type key = Query.t list
 type error = [ `Checksum_failure | `Shrink_too_many ]
 
 val query : 
-  Item.t array 
+  Load.PooledDB.t
   -> User.t 
-  -> key option 
+  -> key
   -> QueryResult.t * (bool, [> error]) Result.t
 
 val search :
-  Item.t array 
+  Load.PooledDB.t
   -> User.t 
   -> string
   -> QueryResult.t * (bool, [> error]) Result.t

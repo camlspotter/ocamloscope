@@ -1,4 +1,3 @@
-<!-- DON'T EDIT THIS FILE! It is generated from oco.conf.in, edit that one, or the variables in Makefile.options -->
 <ocsigen>
   <server>
     <port>@PORT@</port>

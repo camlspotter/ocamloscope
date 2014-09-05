@@ -19,6 +19,8 @@ ELIOM_FILES[]=
     elLoad
     elServices
     elMisc
+    elLog
+#    elPing
     elItem
     elPager
     elOPAM
@@ -26,6 +28,7 @@ ELIOM_FILES[]=
     elSearch
     elPackages
     elSource
+    elBereth
 
 MyOCamlLibrary(ocoeliom, $(ELIOM_FILES))
 

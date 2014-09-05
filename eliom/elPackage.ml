@@ -21,6 +21,10 @@ let opam_link p =
     in
     a ~service [ !$ (OPAM.name_of_package p) ] ()
 
+let error name = 
+  [ p_class "status" [ !$ name ]
+  ]
+
 let notfound name = 
   [ p_class "status" [ !$% "%S: no such OCamlFind package in DB" name ]
   ]
@@ -32,7 +36,7 @@ let ambiguous name =
 let package search_time group_time pack mpaths =
   let opam = 
     let top_ocamlfind_name = <:s<\..*/>> pack.OCP.name in
-    ~~ List.find_map_opt ElLoad.ocamlfind_opam_table ~f:(fun (p, opam) ->
+    ~~ List.find_map_opt ElLoad.db.Load.PooledDB.ocamlfind_opam_table ~f:(fun (p, opam) ->
       if p.OCP.name = top_ocamlfind_name then Some opam
       else None)
   in
@@ -89,13 +93,12 @@ let query name =
   let ppath = Spath.nhc_ident name in
   let res = 
     match
-      Query.query ElLoad.items (Some [ { Query.Query.kind= Some `ExactPackage;
-                                         path= Some ppath;
-                                         type_= None;
-                                         dist0= true }]) 
+      CachedQuery.query ElLoad.db 0 [ { Query.Query.kind= Some `Package;
+                                        path= Some ppath;
+                                        type_= None;
+                                        dist0= true }]
     with
-    | `EmptyQuery | `Error | `Funny -> notfound name
-    | `Ok (_, [_dist, (_, _, [_pkgs, [_id, i]])], search_time, group_time, _size) ->
+    | `Ok (_, [_dist, (_, _, [_pkgs, [_id, i]])], search_time, group_time, _size), _ ->
         begin match i.kind with
         | Item.Package (pack, paths) ->
             (* CRv2 jfuruse: We have many thing to do to have real Eliom! ml => eliom and etc. *)
@@ -110,9 +113,11 @@ let query name =
             tree
         | _ -> assert false
         end
-    | `Ok (_, [], _, _, _) -> 
+    | `Ok (_, [], _, _, _), _ -> 
         notfound name
-    | `Ok (_, xs, _, _, _) -> 
+    | (`EmptyQuery|`Error|`Funny), _ ->
+        error "strange query"
+    | `Ok (_, xs, _, _, _), _ -> 
         let is = 
           List.(flip concat_map xs (fun (_, (_, _, ys)) ->
             flip concat_map ys (fun (_, zs) -> map snd zs)))

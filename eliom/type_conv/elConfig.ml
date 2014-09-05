@@ -20,6 +20,10 @@ open Meta_conv.Open
 open Xml_conv
 
 type t = {
+(*
+  ping_path : string;
+  self_ping_host : string mc_option; (** Where to ping ex. "http://xxx" *)
+*)
   ocamlc_source_dir : string mc_option;
 } with conv(xml)
 

@@ -4,7 +4,7 @@ open Spotlib.Spot
 open List.Infix
 open Eliom_content.Html5.F
 
-let items_per_page = 20
+let items_per_page = 30
 let pager_nav_max_pages = 10
 
 let pager_nav ~total pos =
@@ -45,7 +45,15 @@ let pager ~item ~next ~prev ~here ~goto item_sizes =
     let group = try List.nth pages (n-1) with _ -> List.hd pages in
     let pager_nav = pager_nav ~total:num_pages n in
     let trs = List.map item group in
-    [ table ~a:[ a_class [ "pager" ] ] (List.hd trs) (List.tl trs)
+    [ ul ~a:[ a_class [ "jump" ] ]
+        ( List.map (function
+            | `First -> li [ goto 1 ]
+            | `Here -> li [ here n ]
+            | `Next -> li [ next (n+1) ]
+            | `Prev -> li [ prev (n-1) ]
+            | `Goto i -> li [ goto i ]) pager_nav )
+
+    ; table ~a:[ a_class [ "pager" ] ] (List.hd trs) (List.tl trs)
         (* CR jfuruse: this is the approach for non-empty list, but looks slightly stupid.
            any good tool around?
         *)

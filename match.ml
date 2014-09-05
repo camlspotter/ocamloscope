@@ -74,7 +74,7 @@ end) = struct
         else
           let n = String.lowercase n
           and m = String.lowercase m in
-          let upper_bound = min (min (String.length n / 3) 3) limit + 1 in (* CR jfuruse: should be configurable *)
+          let upper_bound = min (min (String.length n / 2) 3) limit + 1 in (* CR jfuruse: should be configurable *)
           let dist = 
             match Levenshtein.StringWithHashtbl.distance A.cache ~upper_bound n m with
             | Levenshtein.Exact n -> n
@@ -158,7 +158,7 @@ end) = struct
       !!% "distinct=%d total=%d@." distinct total
 
   (* I never see good result with no_target_type_instantiate=false *)
-  let match_type ?(no_target_type_instantiate=true) pattern target limit 
+  let match_type (* ?(no_target_type_instantiate=true) *) pattern target limit 
       : (TypeLimit.t * _) option
       =
     prof_type pattern target;
@@ -232,8 +232,8 @@ end) = struct
             return (score, Attr (`Ref pattern, Constr ({dt with dt_path= pd}, ds)))
   
         | _, (Var _ | VarNamed _ | Univar _ | UnivarNamed _) ->
-            decr ~by:(if no_target_type_instantiate then 1000 
-                      else size_type pattern) limit
+            decr ~by:(* (if no_target_type_instantiate then 1000 
+                      else size_type pattern) *) 1000 limit
             >>= fun limit -> return (limit, Attr (`Ref pattern ,target))
     
         | _ -> fail)
@@ -310,20 +310,32 @@ end) = struct
     
           let pats, targets, penalty =
             (* Some component might be missing in pattern, we fill variables for them
-               but with a rather big price *)
+               but with a rather big price
+
+               At 8a9d320d4 :
+                   pattern: int -> int -> int -> int
+                   target:  nat -> int -> int -> nat -> int -> int -> int
+                   distance = 12 = 3 * (addition(3) + instance(1))
+
+               I think 2 arguments addition is enough
+                   2 * (addition(x) + 1) < 30
+               how about 7? (2*(7+1)=16 3*(7+1)=24<30 4(7+1)=32>30 
+            *)
             if len_pats < len_targets then
-              (* CR jfuruse: 1--n is very dangerous. I once wrote [1--n] aiming to produce a list of length n.
-                 But actually it is 1. *)
               map (fun _ -> dummy_pattern_type_var) (1 -- (len_targets - len_pats)) @ pats,
               map (fun target -> target, true) targets,
-              (len_targets - len_pats) * 3
+              (len_targets - len_pats) * 7
             else if len_pats > len_targets then
               (* The target can have less components than the pattern,
-                 but with huge penalty *)
+                 but with huge penalty
+
+                 At 8a9d320d4 : x5
+                 changed to     x10
+              *)
               pats,
               map (fun _ -> dummy_type_expr_var, false) (1 -- (len_pats - len_targets)) 
               @ map (fun target -> target, true) targets,
-              (len_pats - len_targets) * 5
+              (len_pats - len_targets) * 10
             else pats, map (fun x -> x, true) targets, 0
           in
   
@@ -394,12 +406,63 @@ end) = struct
     
   
   (* Return distance, not score *)
-  let match_type ?no_target_type_instantiate t1 t2 limit_type =
+  let match_type (* ?no_target_type_instantiate *) t1 t2 limit_type =
     let open TypeLimit in
-    match_type ?no_target_type_instantiate t1 t2 (create limit_type) >>= fun (limit, desc) -> 
+    match_type (* ?no_target_type_instantiate *) t1 t2 (create limit_type) >>= fun (limit, desc) -> 
     return (limit_type - limit.score, desc)
   
   (* Return distance, not score *)
   let match_path p1 p2 limit =
     match_path p1 p2 limit >>= fun (score, desc) -> return (limit - score, desc)
+end 
+
+
+
+
+module MakePooled( A: sig
+
+  val cache : Levenshtein.StringWithHashtbl.cache
+  val pooled_types : Stype.t array
+
+end) = struct
+
+  module M = Make(A)
+
+  let error = M.error
+
+  (* Return distance, not score *)
+  let match_path = M.match_path
+
+  module WithType(T : sig
+    val pattern : Stype.t
+    val cache : [ `NotFoundWith of int | `Exact of int * Stype.t ] array
+  end) = struct
+
+    (* Return distance, not score *)
+    let match_type t2 limit_type =
+      let t1 = T.pattern in
+      match t2 with
+      | Item.Not_pooled t2 -> M.match_type t1 t2 limit_type
+      | Item.Pooled n ->
+          let t2 = Array.unsafe_get A.pooled_types n in
+          match Array.unsafe_get T.cache n with
+          | `NotFoundWith n when n >= limit_type -> None
+          | _ ->
+              match M.match_type t1 t2 limit_type with
+              | None -> 
+                  Array.unsafe_set T.cache n (`NotFoundWith limit_type);
+                  None
+              | Some dtrace as res ->
+                  Array.unsafe_set T.cache n (`Exact dtrace);
+                  res
+    
+    (* Return distance, not score *)
+    let match_path_type p1 (p2, ty2) limit_path limit_type =
+      match_path p1 p2 limit_path; 
+      >>= fun (_, desc_path) -> (* Once path test is done, we ignore its dist. *)
+      match_type ty2 limit_type
+      >>= fun (dist, desc_type) -> return (dist, (desc_path, desc_type))
+  end
+  
+  let report_prof_type = M.report_prof_type
 end 

@@ -87,11 +87,23 @@ let stype_t_of_ocaml ?trace x =
 
 let _stype_t_of_ocaml_exn = Ocaml_conv.exn stype_t_of_ocaml
 
+type pooled_type = 
+  | Not_pooled of stype_t
+  | Pooled of int
+with conv(ocaml)
+
 type t = (OCamlFind.Packages.t,
 	  spath_t, 
 	  Loc.t option, 
-	  (OCamlDoc.t option, unit) result_t,
-	  stype_t) record
+          (OCamlDoc.t option, unit) result_t,
+          stype_t) record
+with conv(ocaml)
+
+type pooled = (OCamlFind.Packages.t,
+	       spath_t, 
+	       Loc.t option, 
+	       (OCamlDoc.t option, unit) result_t,
+	       pooled_type) record
 with conv(ocaml)
 
 (* do not hcons itself: It is unlikely we have duped kinds throughout items *)
@@ -290,3 +302,54 @@ let format_gen ?(dont_omit_opened=false) ppf { packs; path; loc; doc; kind } =
         (Spath.format ()) path
 
 let format = format_gen ~dont_omit_opened:false
+
+let type_of_item i = match i.kind with
+  | ClassField (_, ty)
+  | Constr ty 
+  | Exception ty
+  | Field ty
+  | Value ty
+  | Method (_, _, ty)
+  | Type (_, Some ty, _) -> Some ty
+  | Type (_, None, _)
+  | Class
+  | ClassType 
+  | ModType
+  | Module
+  | Package _ -> None
+
+let arity_of_item i =
+  match type_of_item i with
+  | None -> -1
+  | Some ty -> length & fst & Stype.get_arrows ty
+
+let sort_items_by_arity items =
+  Array.sort (fun x y ->
+    compare (arity_of_item x) (arity_of_item y)) items;
+  items
+
+(* CR jfuruse: not used *) 
+let pack_types items = 
+  let module M = struct
+    include Hashtbl.Make(Stype_hcons.HashedType) 
+    let to_list t =
+      let r = ref [] in
+      iter (fun k v -> r +::= (k,v)) t;
+      !r
+  end in
+  let tbl = M.create 1023 in
+  let ids = UniqueID.create () in
+  Array.iter (fun i ->
+    match type_of_item i with
+    | None -> ()
+    | Some ty ->
+        try
+          let (id, count) = M.find tbl ty in
+          M.replace tbl ty (id, count+1)
+        with
+        | Not_found ->
+            let id = UniqueID.get ids in
+            M.add tbl ty (id, 1)) items;
+  !!% "%d different types@." & M.length tbl;
+  let sorted = List.sort (fun (_, (_,c)) (_, (_,c')) -> compare c' c) & M.to_list tbl in
+  iter (fun (_k, (_,c)) -> !!% "%d@." c) sorted

@@ -43,7 +43,7 @@ module Query = struct
             |> XParser.pattern_longident Lexer.token
             |> Spath.of_longident
           in 
-          Some { kind = None; path= Some sitem; type_= None; dist0= false }
+          Some { kind = None; path= Some sitem; type_= None; dist0= false; }
         with
         | _ -> (* !!% "failed to parse as a path %S@." str; *) None
       in
@@ -53,7 +53,7 @@ module Query = struct
     let type_ s = 
       let open Option in
       Util.Result.to_option (Stype_print.read s) >>= fun ty ->
-      return { kind = None; path = None; type_= Some ty; dist0= false }
+      return { kind = None; path = None; type_= Some ty; dist0= false; }
   
     let path_type str =
       try
@@ -65,7 +65,7 @@ module Query = struct
         match p, t with
         | None, _ | _, None -> None
         | Some p, Some t ->
-            Some { kind= None; path= p.path; type_= t.type_; dist0= false }
+            Some { kind= None; path= p.path; type_= t.type_; dist0= false; }
   (*
         | Some {path = Some Lident ("_" | "_*_")}, 
           Some {type_ = Some { ptyp_desc= Ptyp_any }} -> 
@@ -81,7 +81,7 @@ module Query = struct
         (str =~ <:m<(class|class\s+val|class\s+type|constr|exception|field|method|module|module\s+type|type|val|package)\s+>>) >>= fun res ->
         Kindkey.of_string res#_1 >>= fun k ->
         path res#_right >>= fun p ->
-        return { kind=Some k; path=p.path; type_= None; dist0= false }
+        return { kind=Some k; path=p.path; type_= None; dist0= false; }
       with
       | _ -> None
   
@@ -222,6 +222,7 @@ let enrich_with_trace item (trace : trace) =
        | Field _            -> Field ty
        | Method (pf, vf, _) -> Method (pf, vf, ty)
        | Value _            -> Value ty
+       | Type (a, Some _, b) -> Type (a, Some ty, b)
        | _ -> assert false
   in
   { item with Item.path; kind }
@@ -288,89 +289,78 @@ let group_results =
   *> map (fun (i, len, xs) -> (i, len, group_by_package xs))
   *> sort_looks_by_popularity
 
-let query items qs = 
+module Types = Hashtbl.Make(Stype_hcons.HashedType)
+
+let query db qs0 = 
   let module M = struct
-    module Match = Match.Make(struct
+    module Match = Match.MakePooled(struct
       let cache = Levenshtein.StringWithHashtbl.create_cache 1023
+      let pooled_types = db.Load.PooledDB.types
     end)
-    
-    let query_item max_dist {kind= k_opt; path= lident_opt; type_= qtyp_opt; dist0 } i = 
+
+    (* prepare type pools for qs *)
+
+    let qs = 
+      (* different types must have different caches *) 
+      let caches = Types.create 2 in
+      flip iter qs0 (fun q ->
+        flip Option.iter q.type_ & fun ty ->
+          if not & Types.mem caches ty then
+            let cache = Array.init (Array.length db.Load.PooledDB.types) (fun _ -> `NotFoundWith (-1)) in
+            Types.add caches ty cache);
+      flip map qs0 (fun q ->
+        q, flip Option.map q.type_ & fun ty -> 
+          let cache = Types.find caches ty in 
+          let module Match = Match.WithType(struct let pattern = ty let cache = cache end) in
+          Match.match_type,
+          Match.match_path_type)
+      
+    let query_item max_dist ({kind= k_opt; path= lident_opt; dist0 }, matches_with_type) i = 
       let max_dist = if dist0 then 0 else max_dist in
-      match i.Item.kind with
+      match k_opt, i.Item.kind with
       (* Items without types *)
-      | Item.Class 
-      | ClassType
-      | ModType
-      | Module
-      | Type _ 
-      | Package _ ->
-          begin match k_opt, i.Item.kind with
-            | (None | Some `Class), Class 
-            | (None | Some `ModType), ModType
-            | (None | Some `Module), Module
-            | (None | Some `Type), Type _
-            | (None | Some `ClassType), ClassType
-            | (None | Some `Package), Package _ ->
-                begin match lident_opt, qtyp_opt with
-                | None, None -> Some (10, `Nope)
-                | Some lid, None -> 
-                    Option.map (fun (s, d) -> (s, `Path d)) & Match.match_path lid i.path (min max_dist 10)
-                | _, Some _ -> None
-                end
-            | Some `ExactPackage, Package _ ->
-                begin match lident_opt, qtyp_opt with
-                | None, None -> None
-                | Some lid, None -> 
-                    Option.map (fun (s, d) -> (s, `Path d)) & Match.match_path lid i.path 0 (* exact match *)
-                | _, Some _ -> None
-                end
-            | _ -> None
+      | (None | Some `Class), Item.Class 
+      | (None | Some `ClassType), ClassType
+      | (None | Some `ModType), ModType
+      | (None | Some `Module), Module
+      | (None | Some `Type), Type (_, None, _)
+      | (None | Some `Package), Package _ ->
+          begin match lident_opt, matches_with_type with
+          | None, None -> Some (10, `Nope)
+          | Some lid, None -> 
+              Option.map (fun (s, d) -> (s, `Path d)) 
+              & Match.match_path lid i.path (min max_dist 10)
+          | _, Some _ -> None
           end
-            
-      (* Items with types *)
-      | ClassField _
-      | Constr _
-      | Exception _
-      | Field _
-      | Method _
-      | Value _ -> 
-          begin match k_opt, i.kind with
-          | (None | Some `ClassField) , ClassField (_, typ)
-          | (None | Some `Constr    ) , Constr typ
-          | (None | Some `Exception ) , Exception typ
-          | (None | Some `Field     ) , Field typ
-          | (None | Some `Method    ) , Method (_, _, typ)
-          | (None | Some `Value     ) , Value typ ->
-              begin match lident_opt, qtyp_opt with
-              | None, None -> Some (10, `Nope)
-              | Some lid, None -> Option.map (fun (s, d) -> s, `Path d) & Match.match_path lid i.path (min max_dist 10)
-              | None, Some qtyp -> Option.map (fun (s, d) -> s, `Type d) & Match.match_type qtyp typ max_dist 
-              | Some lid, Some qtyp ->
-                  Option.map (fun (s, ds) -> s, `PathType ds) & Match.match_path_type (lid,qtyp) (i.path,typ) (min max_dist 10) max_dist 
-              end
-          | _ -> None
+
+      | (None | Some `ClassField) , ClassField (_, typ)
+      | (None | Some `Constr    ) , Constr typ
+      | (None | Some `Exception ) , Exception typ
+      | (None | Some `Field     ) , Field typ
+      | (None | Some `Method    ) , Method (_, _, typ)
+      | (None | Some `Type      ) , Type (_, Some typ, _)
+      | (None | Some `Value     ) , Value typ ->
+          begin match lident_opt, matches_with_type with
+          | None, None -> Some (10, `Nope)
+          | Some lid, None -> 
+              Option.map (fun (s, d) -> s, `Path d) 
+              & Match.match_path lid i.path (min max_dist 10)
+          | None, Some (match_type, _) -> 
+              Option.map (fun (s, d) -> s, `Type d) 
+              & match_type typ max_dist 
+          | Some lid, Some (_, match_path_type) ->
+              Option.map (fun (s, ds) -> s, `PathType ds) 
+              & match_path_type lid (i.path,typ) (min max_dist 10) max_dist
           end
+      | _ -> None
             
     let query_item max_dist q i = 
       query_item max_dist q i
       |- fun _ -> 
         if !Match.error then
-          !!% "ERROR happened at match of %a@." Item.format i
+          !!% "ERROR happened at match of %a@." Item.format (Stype_pool.unpool_item db.Load.PooledDB.types i)
       
-    let query items qs =
-      let funny = function
-        | { kind=_; path=None; type_=None } -> true
-        | _ -> false
-      in
-    
-      match qs with
-      | None -> `EmptyQuery
-      | Some [] -> `Error
-      | Some qs when for_all funny qs -> `Funny
-      | Some qs ->
-          let qs = filter (not *< funny) qs in
-    
-          (* This is bad, since '_' lists things twice! and the stack was overflown  *)
+    let query db =
           let found, search_time = flip Unix.timed () & fun () ->
             Array.foldi_left 
               (fun st i item ->
@@ -390,10 +380,20 @@ let query items qs =
                 | Some (dist, d) -> Distthresh.add st dist (i, item, d)
                 | None -> st) 
               (Distthresh.create ~thresh:30 ~limit:200) 
-              items
+              db.Load.PooledDB.items
           in
           let (final_result, size), group_time = flip Unix.timed () & fun () ->
             let found = Distthresh.to_list found in
+            let found = 
+              (* Geez, too ugly! *)
+              map (fun (i, xs) -> 
+                i,
+                map (fun (i, pooled, a) ->
+                  i, 
+                  Stype_pool.unpool_item db.Load.PooledDB.types pooled,
+                  a) xs
+              ) found
+            in
             let size = map (fun (_, xs) -> length xs) found |> sum in
             let group_scored_items (score, id_item_descs) = 
               map (fun g -> (score,g)) & group_results id_item_descs 
@@ -401,16 +401,30 @@ let query items qs =
             TR.concat_map group_scored_items found, size
           in
     
-          `Ok (qs, final_result, search_time, group_time, size)
+          `Ok (qs0, final_result, search_time, group_time, size)
   end in
-  M.query items qs |- fun _ -> M.Match.report_prof_type ()
+  M.query db |- fun _ -> M.Match.report_prof_type ()
 
-let search items query_string : QueryResult.t = 
-  query items & Query.parse query_string
+let rec funny_spath = function
+  | Spath.SPident "_" -> true
+  | Spath.SPdot (t, "_") -> funny_spath t
+  | _ -> false
 
-let textual_query items query_string =
+let funny = function
+  | { kind=_; path=None; type_=(None | Some Stype.Any) } -> true
+  | { kind=_; path=Some t; type_=(None | Some Stype.Any) } -> funny_spath t
+  | _ -> false
+
+let search db query_string : QueryResult.t = 
+  match Query.parse query_string with
+  | None -> `EmptyQuery
+  | Some [] -> `Error
+  | Some qs when for_all funny qs -> `Funny
+  | Some qs -> query db & filter (not *< funny) qs
+
+let textual_query db query_string =
   let (!!%) = Format.printf in
-  match search items query_string with
+  match search db query_string with
   | `Ok (_qs, res, search_time, group_time, _size) -> 
       !!% "%f secs (search: %f, group: %f)@." (search_time +. group_time) search_time group_time;
       flip iter res (fun (score, (short_look, _, xs)) -> 
@@ -428,22 +442,24 @@ let textual_query items query_string =
   | `Funny -> !!% "Hahaha! You are so funny. _:_@."
   | `EmptyQuery -> ()
 
-let rec cui items =
+let rec cui db =
   print_string "? "; 
   flush stdout;
-  textual_query items & read_line ();
-  cui items
+  textual_query db & read_line ();
+  cui db
 
 let cli () =
   if Conf.dump then Load.dump_items (); 
 
   if not Conf.dump && Conf.args <> [] then failwith "ERROR: Only dump (-d) mode can take args without flags";
 
-  let { Load.items } = Load.load_items () in
+  let { Load.DB.items } as db = Load.load_items () in
 
   let module M = Tests.Do(struct let items = items end) in
 
-  if Conf.show_stat then begin Stat.report items; exit 0 end;
+  if Conf.show_stat then begin 
+    Stat.report items; exit 0 
+  end;
     
-  cui items
+  cui & Load.PooledDB.poolize db
 

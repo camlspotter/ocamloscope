@@ -14,5 +14,5 @@ let () =
       Source.scan [ d; opam_build_dir ];
       !!% "Scanned local source files.@."
 
-let { Load.items; ocamlfind_opam_table } = Load.load_items ()
+let db = Load.PooledDB.poolize & Load.load_items ()
 
