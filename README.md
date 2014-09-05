@@ -17,6 +17,9 @@ Required softwares
 
 These packages should be available from OPAM. Windows is not supported.
 
+OPAM package for OCamlOScope is not yet available... since it requires the following mending of external softwares.
+
+
 Missing `cmxs` files
 ---------------------------
 
@@ -47,7 +50,10 @@ The following command should scrape the OCaml compiler source code and all the i
 $ ./oco -d -c <ocaml compiler source dir>
 ```
 
-After scraping, `oco` goes to its console query mode.
+How to query locally
+---------------------------
+
+After scraping, `oco` goes to its console query mode against the dumped data file.
 
 How to start Eliom server
 ---------------------------------
