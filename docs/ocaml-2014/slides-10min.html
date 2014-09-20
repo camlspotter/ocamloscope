@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre; background: #e3e3e3; padding-left: 3px; padding-right: 3px;}</style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div id="ocamlscope-a-new-ocaml-api-search" class="slide section level1">
+<h1>OCaml◎Scope: a New OCaml API Search</h1>
+<div class="figure">
+<img src="logo.svg" />
+</div>
+<p>Jun Furuse - Standard Chartered Bank</p>
+</div>
+<div id="who-am-i" class="slide section level1">
+<h1>Who am I?</h1>
+<p><img src="ocaml.png" style="height: 200px"> <img src="haskell-logo.png" style="height:180px"/></p>
+<p>OCaml hacker using Haskell at work</p>
+</div>
+<div id="what-did-helped-me-most-in-haskell-industry" class="slide section level1">
+<h1>What did helped me most in Haskell industry?</h1>
+<ul>
+<li><p>Type class?</p></li>
+<li><p>Purity?</p></li>
+<li><p>Laziness?</p></li>
+</ul>
+</div>
+<div id="its-hoogle." class="slide section level1">
+<h1>It's Hoogle.</h1>
+<p>API Search Engine for Haskell [Mitchell]</p>
+<div class="figure">
+<img src="hoogle.png" />
+</div>
+</div>
+<div id="api-search-engine" class="slide section level1">
+<h1>API Search Engine</h1>
+<ul>
+<li>By Name: <a href="http://localhost:8080/?q=concat"><code>? concat</code></a>
+<ul>
+<li><code>List.concat</code></li>
+<li><code>Array.concat</code></li>
+<li><code>String.concat</code> ...</li>
+</ul></li>
+<li>By Type: <a href="http://localhost:8080/?q=%27a+t+-%3E+%28%27a+-%3E+%27b+t%29+-%3E+%27b+t"><code>? 'a t -&gt; ('a -&gt; 'b t) -&gt; 'b t)</code></a>
+<ul>
+<li><code>(&gt;&gt;=)</code></li>
+<li><code>Core.Std.List.concat_map</code> ...</li>
+</ul></li>
+<li>Or Both: <a href="http://localhost:8080/?q=%3F+val+search+%3A+regexp+-%3E+_"><code>? val search : regexp -&gt; _</code></a>
+<ul>
+<li><code>Regexp.search : regexp -&gt; string -&gt; int -&gt; (int * result) option</code></li>
+</ul></li>
+</ul>
+<p>Theoretical foundations: [Rittri], [Runciman], [Di Cosmo]</p>
+</div>
+<div id="equivalent-in-ocaml" class="slide section level1">
+<h1>Equivalent in OCaml?</h1>
+<p>I use Hoogle 30 times a day sometimes.</p>
+<ul>
+<li><p>Does OCaml have something equivalent? There are, but limited:</p>
+<ul>
+<li><p>OCamlBrowser</p></li>
+<li><p>OCaml API Search</p></li>
+</ul></li>
+<li><p>So I built OCaml◎Scope</p></li>
+</ul>
+</div>
+<div id="ocamlbrowser" class="slide section level1">
+<h1>OCamlBrowser</h1>
+<p>GUI Source browsing + API search: https://forge.ocamlcore.org/projects/labltk/</p>
+<ul>
+<li><p>Only for <strong>locally compiled source</strong></p></li>
+<li><p>Uses OCaml typing code; it <em>is</em> OCaml badly:</p>
+<ul>
+<li><p>Need to give <code>-I dir</code> and things can be shadowed:</p>
+<pre><code>$ ls */*.cmi
+dir1/m.cmi     dir2/m.cmi
+
+$ ocamlbrowser -I dir1 -I dir2    # dir2/m.cmi is shadowed</code></pre></li>
+<li><p><code>cmi</code>s are memory hungry</p></li>
+<li><p>Search is too exact:</p>
+<p><code>('a, 'b) t -&gt; 'a -&gt; 'b</code> does not find <code>Hashtbl.find</code>.</p>
+<p>Requires <code>('a, 'b) Hashtbl.t -&gt; 'a -&gt; 'b</code></p></li>
+</ul></li>
+</ul>
+</div>
+<div id="ocaml-api-search" class="slide section level1">
+<h1>OCaml API Search</h1>
+<div class="figure">
+<img src="ocaml-api-search.png" />
+</div>
+<ul>
+<li><p>Remote search server</p></li>
+<li><p>Search <code>stdlib</code>, <code>otherlibs</code> and <code>Extlib</code></p></li>
+<li><p>Based on OCamlBrowser + CamlGI</p>
+<ul>
+<li>Same characteristics with OCamlBrowser</li>
+</ul></li>
+<li><p><strong>Discontinued</strong></p></li>
+</ul>
+</div>
+<div id="difficulties-existed-in-ocaml" class="slide section level1">
+<h1>Difficulties existed in OCaml</h1>
+<ul>
+<li><p><code>cmi</code> file is less informative (no location, no docs)</p></li>
+<li><p><code>ml</code>/<code>mli</code> require proper options (<code>-I</code>, <code>-pp</code>, ...) to re-analyze</p>
+<pre class="shell"><code>ocamlfind ocamlc 
+  -package spotlib,findlib,treeprint,orakuda,xml_conv,levenshtein
+  -thread -I +ocamldoc -I .
+  -syntax camlp4o -package meta_conv.syntax,orakuda.syntax,pa_ounit.syntax
+  -c stat.ml</code></pre></li>
+<li><p>No unified installation: hard to get these options</p></li>
+</ul>
+<p>configure / make / omake / ...</p>
+</div>
+<div id="they-are-now-gone" class="slide section level1">
+<h1>They are now gone!</h1>
+<ul>
+<li><p><code>cmt</code>/<code>cmti</code> files gives you:</p>
+<ul>
+<li><p>Compiled AST with locations</p></li>
+<li><p>Contains arguments to re-process to run OCamlDoc</p>
+<p><code>stat.cmt</code> ⇒</p>
+<pre class="shell"><code>ocamlfind ocamlc 
+  -package spotlib,findlib,treeprint,orakuda,xml_conv,levenshtein
+  -thread -I +ocamldoc -I .
+  -syntax camlp4o -package meta_conv.syntax,orakuda.syntax,pa_ounit.syntax
+  -c stat.ml</code></pre></li>
+</ul></li>
+<li><p>OPAM unified installations</p></li>
+<li><p>compiler-libs: easier access to OCaml internals</p></li>
+</ul>
+</div>
+<div id="ocamlscope-hoogle-for-ocaml" class="slide section level1">
+<h1>OCaml◎Scope: Hoogle for OCaml</h1>
+<p>Ah, yes... mostly.</p>
+<ul>
+<li><p>Remote search server by Ocsigen/Eliom</p></li>
+<li><p>Edit distance based</p></li>
+<li><p>On memory DB</p></li>
+</ul>
+</div>
+<div id="search-by-edit-distance" class="slide section level1">
+<h1>Search by edit distance</h1>
+<p>Too exact search is not very useful:</p>
+<ul>
+<li><p><a href="http://localhost:8080/?q=finalize"><code>? finalize</code></a></p>
+<ul>
+<li><code>Gc.finalise</code></li>
+</ul></li>
+<li><p><a href="http://localhost:8080/?q=val+concat+%3A+string+list+-%3E+string"><code>? val concat : string list -&gt; string</code></a></p>
+<ul>
+<li><code>val concat : sep:string -&gt; string list -&gt; string</code></li>
+</ul></li>
+</ul>
+<p>Search done around 3 secs at worst so far in a small cheap VPS.</p>
+</div>
+<div id="on-memory-db" class="slide section level1">
+<h1>On memory DB</h1>
+<p>Special Paths and Types with Hashconsing</p>
+<p>Some numbers:</p>
+<ul>
+<li><p>Major 115 OPAM packages / 185 OCamlFind packages</p></li>
+<li><p>525k entries (values, types, constructors...)</p></li>
+<li><p>39Mb of the final data file</p></li>
+<li><p>170Mb in Memory (1/2 of naive <code>cmi</code> loading)</p></li>
+</ul>
+</div>
+<div id="ocaml-specific-challenges" class="slide section level1">
+<h1>OCaml specific challenges</h1>
+<ul>
+<li><p>Scrapers have to deal with 2 package systems (OCamlFind and OPAM)</p></li>
+<li><p>Search result regrouping</p></li>
+</ul>
+</div>
+<div id="scraping-and-2-package-systems" class="slide section level1">
+<h1>Scraping and 2 package systems</h1>
+<ul>
+<li><p>Scraping <code>cmt</code>/<code>cmti</code>s per <strong>OPAM</strong> package</p>
+<p><code>export OPAMKEEPBUILDDIR=yes</code></p></li>
+<li><p>Module hierarchy by <strong>OCamlFind</strong> packages:</p>
+<p><code>{batteries}.BatList.iter</code></p></li>
+<li><p>Detect <a href="http://localhost:8080/packages">OPAM ⇔ OCamlFind package relationships</a></p></li>
+</ul>
+</div>
+<div id="too-many-search-results" class="slide section level1">
+<h1>Too many search results</h1>
+<p>OCaml specific problem:</p>
+<h2 id="section"><a href="http://localhost:8080/?q=%28%2B%29&amp;bad=on"><code>? (+)</code></a></h2>
+<p>+260</p>
+<h2 id="a-t---a---b-t---b-t"><a href="http://localhost:8080/?q=%27a+t+-%3E+%28%27a+-%3E+%27b+t%29+-%3E+%27b+t&amp;bad=on"><code>? 'a t -&gt; ('a -&gt; 'b t) -&gt; 'b t</code></a></h2>
+<p>+500</p>
+<h2 id="map"><a href="http://localhost:8080/?q=map&amp;bad=on"><code>? map</code></a></h2>
+<p>+5000!</p>
+</div>
+<div id="why-so-many" class="slide section level1">
+<h1>Why so many?</h1>
+<ul>
+<li><p>Things aliased by module aliases and inclusions</p>
+<ul>
+<li><code>module List = BatList</code></li>
+<li><code>include Core_kernel.Std_kernel</code></li>
+</ul></li>
+<li>No type class
+<ul>
+<li>Not <code>(&gt;&gt;=) :: Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b</code></li>
+<li>But,
+<ul>
+<li><code>Option.(&gt;&gt;=)</code></li>
+<li><code>List.(&gt;&gt;=)</code></li>
+<li><code>Lwt.(&gt;&gt;=)</code></li>
+<li>...</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+<div id="workaround" class="slide section level1">
+<h1>Workaround</h1>
+<ul>
+<li><p>Grouping results by &quot;short looks&quot;</p>
+<ul>
+<li><p><code>Lwt.(&gt;&gt;=) : 'a Lwt.t -&gt; ('a -&gt; 'b Lwt.t) -&gt; 'b Lwt.t)</code></p></li>
+<li><p><code>(&gt;&gt;=) : 'a     t -&gt; ('a -&gt; 'b     t) -&gt; 'b     t)</code></p></li>
+</ul></li>
+<li><p>Results</p>
+<ul>
+<li><p>+500 ⇒ 8 groups: <a href="http://localhost:8080/?q=%27a+t+-%3E+%28%27a+-%3E+%27b+t%29+-%3E+%27b+t"><code>? 'a t -&gt; ('a -&gt; 'b t) -&gt; 'b t</code></a></p></li>
+<li><p>+260 ⇒ 30 groups: <a href="http://localhost:8080/?q=%28%2B%29"><code>? (+)</code></a></p></li>
+<li><p>+5000 ⇒ 880 groups: <a href="http://localhost:8080/?q=map"><code>? map</code></a></p></li>
+</ul></li>
+</ul>
+</div>
+<div id="future-work-real-alias-analysis" class="slide section level1">
+<h1>Future work: Real alias analysis</h1>
+<p>One group, but with 69 results of <a href="http://localhost:8080/?q=%28%2B%29+%3A+int+-%3E+int+-%3E+int"><code>? (+) : int -&gt; int -&gt; int</code></a></p>
+<p>This should be improved like:</p>
+<pre><code>? (+) : int -&gt; int -&gt; int
+
+Found 1 group of 1 result
+
+{stdlib}.Pervasives.(+) : int -&gt; int -&gt; int
+  with 63 aliases (see details) </code></pre>
+<p>It would improve search performance too</p>
+</div>
+<div id="so-many-things-to-do" class="slide section level1">
+<h1>So many things to do!</h1>
+<ul>
+<li>Better Web GUI</li>
+<li>Remote query API</li>
+<li>Repository of scraped data</li>
+<li>Better match: ex. <code>snakeCase</code> should match with <code>snake_case</code></li>
+<li>Bugs, bugs, bugs...</li>
+</ul>
+<p>https://github.com/camlspotter/ocamloscope/issues</p>
+</div>
+<div id="ocamlscope-a-new-ocaml-api-search-1" class="slide section level1">
+<h1>OCaml◎Scope: a New OCaml API Search</h1>
+<ul>
+<li>API Search by Name and/or Types for OCaml</li>
+<li>Already searchable +100 top OPAM packages</li>
+<li>Any ideas, reports and contributions are welcome!</li>
+</ul>
+<p>URL: http://ocamloscope.herokuapp.com</p>
+<p>Source: https://github.com/camlspotter/ocamloscope</p>
+</div>
+</body>
+</html>
