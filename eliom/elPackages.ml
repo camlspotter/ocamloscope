@@ -42,8 +42,7 @@ let the_table =
                        ; td [ !$ "OPAM" ]
                        ]
                   ])
-    (List.hd trs)
-    (List.tl trs)
+    trs
     
 
 let packages = 

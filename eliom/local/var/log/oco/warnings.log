@@ -217,3 +217,31 @@ Aug 24 23:25:59: main: Launching a new Ocsidbm process: /Users/jun/.opam/system/
 Aug 24 23:26:00: main: ...Initialization of Ocsipersist-dbm complete
 Aug 24 23:26:00: main: While parsing config file, tag <host>: No defaulthostname, assuming it is "mba.local"
 Aug 24 23:26:00: main: Ocsigen has been launched (initialisations ok)
+Dec  3 03:49:15: main: Initializing Ocsipersist-dbm...
+Dec  3 03:49:15: main: Launching a new Ocsidbm process: /Users/jun/.opam/4.01.0/lib/ocsigenserver/extensions/ocsidbm.opt on directory local/var/data/oco/ocsipersist.
+Dec  3 03:49:16: main: ...Initialization of Ocsipersist-dbm complete
+Dec  3 03:49:34: main: Initializing Ocsipersist-dbm...
+Dec  3 03:49:34: main: Launching a new Ocsidbm process: /Users/jun/.opam/4.01.0/lib/ocsigenserver/extensions/ocsidbm.opt on directory local/var/data/oco/ocsipersist.
+Dec  3 03:49:35: main: ...Initialization of Ocsipersist-dbm complete
+Dec  3 03:50:05: main: Initializing Ocsipersist-dbm...
+Dec  3 03:50:05: main: Launching a new Ocsidbm process: /Users/jun/.opam/4.01.0/lib/ocsigenserver/extensions/ocsidbm.opt on directory local/var/data/oco/ocsipersist.
+Dec  3 03:50:06: main: ...Initialization of Ocsipersist-dbm complete
+Dec  3 03:50:33: main: Initializing Ocsipersist-dbm...
+Dec  3 03:50:33: main: Launching a new Ocsidbm process: /Users/jun/.opam/4.01.0/lib/ocsigenserver/extensions/ocsidbm.opt on directory local/var/data/oco/ocsipersist.
+Dec  3 03:50:34: main: ...Initialization of Ocsipersist-dbm complete
+Dec  4 21:34:37: main: Initializing Ocsipersist-dbm...
+Dec  4 21:34:37: main: Launching a new Ocsidbm process: /Users/jun/.opam/4.01.0/lib/ocsigenserver/extensions/ocsidbm.opt on directory local/var/data/oco/ocsipersist.
+Dec  4 21:34:38: main: ...Initialization of Ocsipersist-dbm complete
+Dec  4 21:35:08: main: Initializing Ocsipersist-dbm...
+Dec  4 21:35:08: main: Launching a new Ocsidbm process: /Users/jun/.opam/4.01.0/lib/ocsigenserver/extensions/ocsidbm.opt on directory local/var/data/oco/ocsipersist.
+Dec  4 21:35:09: main: ...Initialization of Ocsipersist-dbm complete
+Dec  4 21:35:57: main: Initializing Ocsipersist-dbm...
+Dec  4 21:35:57: main: Launching a new Ocsidbm process: /Users/jun/.opam/4.01.0/lib/ocsigenserver/extensions/ocsidbm.opt on directory local/var/data/oco/ocsipersist.
+Dec  4 21:35:58: main: ...Initialization of Ocsipersist-dbm complete
+Dec  4 21:36:01: main: While parsing config file, tag <host>: No defaulthostname, assuming it is "mba.local"
+Dec  4 21:36:01: main: Ocsigen has been launched (initialisations ok)
+Dec  4 21:42:57: main: Initializing Ocsipersist-dbm...
+Dec  4 21:42:57: main: Launching a new Ocsidbm process: /Users/jun/.opam/4.01.0/lib/ocsigenserver/extensions/ocsidbm.opt on directory local/var/data/oco/ocsipersist.
+Dec  4 21:42:58: main: ...Initialization of Ocsipersist-dbm complete
+Dec  4 21:42:59: main: While parsing config file, tag <host>: No defaulthostname, assuming it is "mba.local"
+Dec  4 21:42:59: main: Ocsigen has been launched (initialisations ok)

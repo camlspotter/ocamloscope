@@ -75,4 +75,4 @@ let () =
                       [ !$% "File %s with digest=%s line=%d found at %s but displaying it raised an exception %s" path digest line p (Exn.to_string e)]
                   | `Ok ls -> 
                       let tr = numbered ~highlight:line ls in
-                      [ table tr [] ]
+                      [ table [tr] ]

@@ -617,7 +617,7 @@ let load_items () =
   |- fun _ ->
     let words = XSpotlib.Gc.used_words () in
     !!% "words: %d@." words;
-    Gc.print_stat stderr; flush stderr;
+    Gc.print_stat stderr; flush stderr
       
 module PooledDB = struct
   type t = {

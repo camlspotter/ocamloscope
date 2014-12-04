@@ -12,7 +12,7 @@ let service = ElServices.Package.service
 let opam_link p = 
   if p.OPAM.base then !$ (OPAM.name_of_package p)
   else
-    let service = Eliom_service.external_service
+    let service = Eliom_service.Http.external_service
       ~prefix:"http://opam.ocaml.org"
       ~path: [ "pkg"; p.OPAM.name ; !% "%s.%s" p.OPAM.name p.OPAM.version ]
       (* ~keep_nl_params: .. *)
@@ -84,7 +84,7 @@ let package search_time group_time pack mpaths =
             ]
        ]
     in
-    table (List.hd trs) (List.tl trs)
+    table trs
 
   ]
 

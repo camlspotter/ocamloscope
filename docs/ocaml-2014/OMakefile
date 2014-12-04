@@ -1,0 +1,5 @@
+slides-10min.html: slides-10min.md
+    pandoc -t slidy -s slides-10min.md -V theme=moon -o slides-10min.html.tmp
+    sed -e 's/code{white-space: pre;}/code{white-space: pre; background: #e3e3e3; padding-left: 3px; padding-right: 3px;}/' slides-10min.html.tmp > slides-10min.html
+
+.DEFAULT: slides-10min.html
