@@ -49,7 +49,7 @@ let oco_form value =
 let issues =
   let service = 
     let open Eliom_parameter in
-    Eliom_service.external_service 
+    Eliom_service.Http.external_service 
       ~prefix: "https://github.com"
       ~path: [ "camlspotter"; "ocamloscope"; "issues" ]
       ~get_params: (string "status" ** string "status")
@@ -61,8 +61,8 @@ let triangle = !$ "▼"
 
 let toggle_display id xs =
   (* Not serviced <a> but normal <a> *)
-  Eliom_content_core.Html5.F.a 
+  Eliom_content.Html5.F.Raw.a
     ~a:[ a_class ["toggleDisplay"]
        ; a_href (Xml.uri_of_string (!% "javascript:toggleDisplay('%s')" id)) ] 
-    xs 
+    xs
 

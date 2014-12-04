@@ -53,7 +53,7 @@ let pager ~item ~next ~prev ~here ~goto item_sizes =
             | `Prev -> li [ prev (n-1) ]
             | `Goto i -> li [ goto i ]) pager_nav )
 
-    ; table ~a:[ a_class [ "pager" ] ] (List.hd trs) (List.tl trs)
+    ; table ~a:[ a_class [ "pager" ] ] trs
         (* CR jfuruse: this is the approach for non-empty list, but looks slightly stupid.
            any good tool around?
         *)

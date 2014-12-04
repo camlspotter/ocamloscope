@@ -23,7 +23,7 @@
     <extension findlib-package="xml_conv"/>
     <extension findlib-package="levenshtein"/>
     <!-- ocamldoc has no META -->
-    <extension module="/Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cma"/>
+    <extension module="/Users/jun/.opam/4.01.0/lib/ocaml/ocamldoc/odoc_info.cma"/>
     
     <!-- <host defaulthostname="localhost" hostfilter="localhost"> -->
     <host>

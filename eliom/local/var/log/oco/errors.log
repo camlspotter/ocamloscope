@@ -10,3 +10,11 @@ Aug 24 11:21:03: main: Fatal - Error in configuration file: Error while parsing 
 Aug 24 11:29:59: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Failure("You need ocamlc_source_dir")
 Aug 24 11:30:04: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Invalid_argument("String.sub")
 Aug 24 11:31:01: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Invalid_argument("String.sub")
+Dec  3 03:44:52: main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-dbm not found: maybe you forgot <findlib path="..."/>?
+Dec  3 03:45:06: main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-dbm not found: maybe you forgot <findlib path="..."/>?
+Dec  3 03:49:16: main: Fatal - While loading /Users/jun/.opam/4.01.0/lib/ocaml/compiler-libs/ocamlcommon.cmxs: cannot find file /Users/jun/.opam/4.01.0/lib/ocaml/compiler-libs/ocamlcommon.cmxs in search path
+Dec  3 03:49:36: main: Fatal - While loading /Users/jun/.opam/4.01.0/lib/oUnit/oUnit.cmxs: no implementation available for OUnit2
+Dec  3 03:50:06: main: Fatal - Findlib package tiny_json_conv not found: maybe you forgot <findlib path="..."/>?
+Dec  3 03:50:34: main: Fatal - While loading /Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cmxs: cannot find file /Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cmxs in search path
+Dec  4 21:34:38: main: Fatal - While loading /Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cmxs: cannot find file /Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cmxs in search path
+Dec  4 21:35:09: main: Fatal - While loading /Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cmxs: cannot find file /Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cmxs in search path
