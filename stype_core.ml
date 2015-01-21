@@ -9,7 +9,6 @@ open List
 
 module OCaml = Ocaml
 module OCaml_conv = Ocaml_conv
-open OCaml_conv
 
 type 'a loop = 'a
 (* Hack for conv(ocaml) with looped values *)
@@ -80,7 +79,7 @@ and datatype = { dt_path : Spath.t;
                  dt_aliases : (t loop list * t loop) option option ref
                }
 
-with conv(ocaml_of)
+[@@deriving conv{ocaml_of}]
 
 let oformat = Ocaml.format_with ocaml_of_t
 

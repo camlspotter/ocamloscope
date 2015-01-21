@@ -13,7 +13,7 @@ and attr =
   | `Ident of t * (string * string option)
   | `AfterDot of string * string option
   ]
-with conv(ocaml_of)
+[@@deriving conv{ocaml_of}]
 
 val predef : t
 val pack : OCamlFind.Packages.t -> t

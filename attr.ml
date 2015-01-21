@@ -3,7 +3,7 @@
 type t =
   [ `Bold 
   ]
-with conv(ocaml)
+[@@deriving conv{ocaml}]
     
   
     

@@ -1,10 +1,10 @@
 open Spotlib.Spot
 open List
 
-let get_version () = <:qx<ocamlc -version>> |> snd |> List.hd |> Spotlib.Spot.String.chop_eols
+let get_version () = {qx|ocamlc -version|qx} |> snd |> hd |> Spotlib.Spot.String.chop_eols
 
 let is_ocaml_source_root d =
-  let files = <:qx<ls ${d}>> |> snd |> map chop_eols in
+  let files = {qx|ls ${d}|qx} |> snd |> map chop_eols in
   for_all (fun x -> mem x files) [ "ocamldoc"; "stdlib"; "otherlibs" ]
 
 let find_ocaml_source_root () =

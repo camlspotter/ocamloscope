@@ -72,7 +72,7 @@ and datatype = { dt_path : Spath.t;
                  dt_aliases : (t list * t) option option ref
                }
 
-with conv(ocaml_of)
+[@@deriving conv{ocaml_of}]
 
 val oformat : Format.t -> t -> unit
 

@@ -1,6 +1,6 @@
 open Spotlib.Spot
 open List
-open Ocaml_conv
+open Ppx_orakuda.Regexp.Infix
 
 (** I should use OPAM library but I still feel it is not stable enough. 
     So far, I use OPAM cli. 
@@ -36,8 +36,7 @@ let get_current_switch () =
   |> get_stdout
   |> must_exit_with 0
   |> filter_map (fun s ->
-    s |> <:m<^([^\s]+)\s+C\s+>> as x -> Some x#_1
-      | _ -> None)
+    Option.map (fun x -> x#_1) (s =~ {m|^([^\s]+)\s+C\s+|m}))
   |> function
       | [sw] -> sw
       | [] -> assert false
@@ -48,7 +47,7 @@ type package = {
   version : string;
   desc : string;
   base : bool
-} with conv(ocaml)
+} [@@deriving conv{ocaml}]
 
 let name_of_package p = if p.base then p.name else p.name ^ "." ^ p.version
 let format_package ppf p = 
@@ -61,14 +60,17 @@ let get_installed () =
     |> must_exit_with 0
   ) |> filter_map (fun line ->
     let line = String.chop_eols line in
-    line |! <:m<^Installed packages>> -> None (* The first line. CR jfuruse: very fragile against OPAM change *)
-         | <:m<^([^\s]+)\s+([^\s]+)\s+(.*)$>> as x -> 
-             !!% "%s %s@." x#_1 x#_2;
-             let base = x#_2 = "base" in
-             Some { name = x#_1; version = x#_2; desc = x#_3; base }
-         | _ -> 
-              !!% "opam list -i returned a strange line: %s@." line;
-              None)
+    match () with
+    | _ when [%p? Some _] <-- (line =~ {m|^Installed packages|m}) ->
+        (* The first line. CR jfuruse: very fragile against OPAM change *)
+        None
+    | _ when Some x <-- (line =~ {m|^([^\s]+)\s+([^\s]+)\s+(.*)$|m}) ->
+        !!% "%s %s@." x#_1 x#_2;
+        let base = x#_2 = "base" in
+        Some { name = x#_1; version = x#_2; desc = x#_3; base }
+    | _ -> 
+        !!% "opam list -i returned a strange line: %s@." line;
+        None)
 
 let split_dir path =        
   let rec split_dir ds = function

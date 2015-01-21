@@ -78,7 +78,7 @@ module Query = struct
       let open Option.Open in
       try
         (* CR jfuruse: parsing of kind is very ugly *)
-        (str =~ <:m<(class|class\s+val|class\s+type|constr|exception|field|method|module|module\s+type|type|val|package)\s+>>) >>= fun res ->
+        (str =~ {m|(class|class\s+val|class\s+type|constr|exception|field|method|module|module\s+type|type|val|package)\s+|m}) >>= fun res ->
         Kindkey.of_string res#_1 >>= fun k ->
         path res#_right >>= fun p ->
         return { kind=Some k; path=p.path; type_= None; dist0= false; }
@@ -89,7 +89,7 @@ module Query = struct
       let open Option.Open in
       try
         (* CR jfuruse: parsing of kind is very ugly *)
-        (str =~ <:m<(class\s+val|constr|exception|field|method|val)\s+>>) >>= fun res ->
+        (str =~ {m|(class\s+val|constr|exception|field|method|val)\s+|m}) >>= fun res ->
         Kindkey.of_string res#_1 >>= fun k -> 
         path_type res#_right >>= fun res ->
         return { res with kind = Some k }
@@ -97,7 +97,7 @@ module Query = struct
       | _ -> None
   
     let query s = 
-      let s = <:s<(^\s+|\s+$)//g>> s in
+      let s = {s|(^\s+|\s+$)//g|s} s in
       match s with
       | "" -> None
       | _ ->

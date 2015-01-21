@@ -18,7 +18,7 @@ type package = {
   version : string;
   desc    : string;
   base    : bool; (** true means it is a virtual base package *)
-} with conv(ocaml)
+} [@@deriving conv{ocaml}]
 
 val format_package : Format.t -> package -> unit
 val name_of_package : package -> string

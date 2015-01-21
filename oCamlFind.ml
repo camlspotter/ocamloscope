@@ -1,8 +1,7 @@
 open Spotlib.Spot
 open List
 
-open Orakuda
-open Ocaml_conv
+open Ppx_orakuda
 module Scanner = Fl_metascanner
 
 module Package = struct
@@ -18,7 +17,7 @@ module Package = struct
     name : string;
     dir : string;
     defs : (string * string) list
-  } with conv(ocaml)
+  } [@@deriving conv{ocaml}]
 
   let convert t = 
     { name = t.package_name;
@@ -34,7 +33,7 @@ module Package = struct
   let requires p = 
     match find_var "requires" p with
     | None -> None
-    | Some s -> Some (Regexp.split <:m<[\s,]+>> s) 
+    | Some s -> Some (Regexp.split {m|[\s,]+|m} s) 
 
   let top_name p = 
     match String.split1 (function '.' -> true | _ -> false) p.name with
@@ -54,11 +53,11 @@ module Package = struct
     find_var "browse_interfaces" p
     |> Option.map (fun v ->
       filter_map (fun s ->
-        let s = <:s<\s//g>> s in
+        let s = {s|\s//g|s} s in
         match s with
         | "" -> None
         | _ -> Some s) 
-            & Regexp.split <:m< Unit name: >> v)
+            & Regexp.split {m| Unit name: |m} v)
       
   let has_browse_interfaces p = 
     exists (fun (k,_) -> k = "browse_interfaces") p.defs
@@ -85,7 +84,7 @@ let get_stdlib_dir () = Findlib.ocaml_stdlib ()
 type modules = {
     targets : (Module_path.t * Cmfile.CMIDigest.t) list;
     reachable_tops : (Module_path.t * string list (** module name *) * Cmfile.CMIDigest.t option) list
-  } with conv(ocaml)
+  } [@@deriving conv{ocaml}]
 
 let scan_installed_files =
   (* almost of all the subpackages use the same dir of its parents. So memoizing is required. *)
@@ -309,7 +308,7 @@ let choose_best_package_name = function
 
 module Packages = struct
 
-  type t = string list with conv(ocaml)
+  type t = string list [@@deriving conv{ocaml}]
 
   include Hashcons.Make(struct
     type t = string list

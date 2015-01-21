@@ -33,7 +33,7 @@ let to_string = function
 
 let of_string s = 
   (* CR jfuruse: parsing of kind is very ugly *)
-  let s = <:s<\s+/ /g>> s in
+  let s = {s|\s+/ /g|s} s in
   match s with
   | "class"         -> Some `Class
   | "class val"     -> Some `ClassField

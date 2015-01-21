@@ -221,7 +221,7 @@ type dump_file = {
   packages : OCamlFind.Packages.t;
   opam : OPAM.package option;
   items : Item.t list
-} with conv(ocaml_of)
+} [@@deriving conv{ocaml_of}]
 
 module Make(A : sig end) = struct
   module O = OPAM.Make(struct end)
@@ -542,8 +542,8 @@ let load_dumped_items () =
     let items = ref & load_predefined () in
     let ocamlfind_opam_table = ref [] in
     Unix.Find.find ~follow_symlink:true [Conf.data_dir] ~f:(fun p ->
-      p#base 
-      |! <:m<^oco_.*\.bin$>> ->
+      match () with
+      | _ when [%p? Some _] <-- p#base =~ {m|^oco_.*\.bin$|m} ->
           let { top_package; opam; items=items_of_pname } = load_dumped_package_group p#path in
           ocamlfind_opam_table := (top_package, opam) :: !ocamlfind_opam_table; 
           items := items_of_pname @ !items

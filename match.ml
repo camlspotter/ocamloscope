@@ -458,7 +458,7 @@ end) = struct
     
     (* Return distance, not score *)
     let match_path_type p1 (p2, ty2) limit_path limit_type =
-      match_path p1 p2 limit_path; 
+      match_path p1 p2 limit_path
       >>= fun (_, desc_path) -> (* Once path test is done, we ignore its dist. *)
       match_type ty2 limit_type
       >>= fun (dist, desc_type) -> return (dist, (desc_path, desc_type))

@@ -6,7 +6,7 @@ module Package : sig
     name : string;
     dir  : string;
     defs : (string * string) list
-  } with conv(ocaml)
+  } [@@deriving conv{ocaml}]
   (** Simplified version of [Fl_package_base.package] *)
 
   val name : t -> string
@@ -108,7 +108,7 @@ val choose_best_package_name : string list -> string
  *)
 
 module Packages : sig
-  type t with conv(ocaml)
+  type t [@@deriving conv{ocaml}]
   (** set of packages *)
 
   val to_strings : t -> string list

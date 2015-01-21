@@ -11,9 +11,9 @@ type kind =
   | `Module 
   | `Module_type 
   ]
-with conv(ocaml)
+[@@deriving conv{ocaml}]
 
-type t = Odoc_types.info with conv(ocaml) (** as info string *)
+type t = Odoc_types.info [@@deriving conv{ocaml}] (** as info string *)
 
 val oformat : Format.t -> t -> unit
 (** as an OCaml value *)
@@ -31,6 +31,6 @@ val oformat_entry : Format.t -> entry -> unit
 type error = string list * [ `Chdir 
                            | `Exec of Unix.process_status * string list
                            | `Load_dump of string ]
-with conv(ocaml)
+[@@deriving conv{ocaml}]
 
 val docs_of_cmt : Cmt_format.cmt_infos -> (entry list, error) Result.t

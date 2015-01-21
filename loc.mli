@@ -3,7 +3,7 @@ type t = private {
   pack   : [ `None | `OCamlc of string | `OPAM of string ];
   loc    : Location.t;
   alias  : [ `Direct | `Unknown ]
-} with conv(ocaml)
+} [@@deriving conv{ocaml}]
 
 val create : Digest.t option -> [`None | `OCamlc of string | `OPAM of string] -> Location.t -> [ `Direct | `Unknown ] -> t
 (** No recursive rec cons *)

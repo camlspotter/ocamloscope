@@ -7,7 +7,7 @@ module Digest = struct
   let t_of_ocaml ?(trace=[]) o = 
     (* CR jfuruse: this is very hard to write. Meta_conv should be improved *)
     Result.(bind (string_of_ocaml ~trace o) & fun s ->
-      try return & from_hex s with exn -> `Error (Meta_conv.Error.Exception exn, o, trace))
+      try return & from_hex s with exn -> `Error (`Exception exn, o, trace))
 end
 
 type lexing_position = Lexing.position = {
@@ -15,13 +15,13 @@ type lexing_position = Lexing.position = {
     pos_lnum : int;
     pos_bol : int;
     pos_cnum : int;
-  } with conv(ocaml)
+  } [@@deriving conv{ocaml}]
 
 type location_t = Location.t = {
     loc_start: lexing_position;
     loc_end: lexing_position;
     loc_ghost: bool;
-  } with conv(ocaml)
+  } [@@deriving conv{ocaml}]
 
 (** special location *)
 
@@ -30,7 +30,7 @@ type t = { digest : Digest.t option;
            pack   : [ `None | `OCamlc of string | `OPAM of string ];
            loc : location_t; (* it contains path names... *)
            alias  : [ `Direct | `Unknown ]
-         } with conv(ocaml)
+         } [@@deriving conv{ocaml}]
 
 let format ppf t = 
   let open Format in 

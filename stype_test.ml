@@ -2,7 +2,7 @@ open Spotlib.Spot
 open Stype_print
 open List
 
-let sanitize = <:s<\s+/ /g>> *> <:s<\s+;/;/g>>
+let sanitize = {s|\s+/ /g|s} *> {s|\s+;/;/g|s}
 
 let read_show_read s =
   match read s with

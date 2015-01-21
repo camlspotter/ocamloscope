@@ -1,4 +1,4 @@
-type t with conv(ocaml)
+type t [@@deriving conv{ocaml}]
 (** Abstraction of directory name + module name: ex. "/usr/local/lib/ocaml/List" *)
 
 external of_string : string -> t = "%identity" 

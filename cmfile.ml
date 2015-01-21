@@ -8,7 +8,7 @@ open Cmi_format
 
 (* CM* signature digest *)
 module CMIDigest : sig
-  type t with conv(ocaml)
+  type t [@@deriving conv{ocaml}]
   val to_string : t -> string
   val of_cu	: compilation_unit -> t
   val of_ui	: unit_infos -> t
@@ -21,22 +21,22 @@ end = struct
   let ocaml_of_t = ocaml_of_string *< Digest.to_hex
   let t_of_ocaml ?(trace=[]) o = 
     Result.(bind (string_of_ocaml ~trace o) & fun s ->
-      try return & Digest.from_hex s with exn -> `Error (Meta_conv.Error.Exception exn, o, trace)
+      try return & Digest.from_hex s with exn -> `Error (`Exception exn, o, trace)
     )
   let t_of_ocaml_exn = Ocaml_conv.exn t_of_ocaml
       
   let to_string x = Digest.to_hex x
 
-  let of_cu  cu  = try assoc cu.cu_name   cu.cu_imports     with _ -> assert false
-  let of_ui  ui  = try assoc ui.ui_name   ui.ui_imports_cmi with _ -> assert false
-  let of_cmi cmi = try assoc cmi.cmi_name cmi.cmi_crcs      with _ -> assert false
+  let of_cu  cu  = try from_Some & assoc cu.cu_name   cu.cu_imports     with _ -> assert false
+  let of_ui  ui  = try from_Some & assoc ui.ui_name   ui.ui_imports_cmi with _ -> assert false
+  let of_cmi cmi = try from_Some & assoc cmi.cmi_name cmi.cmi_crcs      with _ -> assert false
 end
 
 (* Load a CM* file. *)
 let load filename =
   with_ic (open_in_bin filename) & fun ic ->
     let len_magic_number = String.length cmo_magic_number in
-    let magic_number = Misc.input_bytes ic len_magic_number in
+    let magic_number = really_input_string ic len_magic_number in
   
     if magic_number = cmo_magic_number then begin
       let cu_pos = input_binary_int ic in
@@ -264,7 +264,7 @@ let cmi_without_value cmi_path =
     | Sig_module _
     | Sig_class _ -> false
     | Sig_type _
-    | Sig_exception _
+    | Sig_typext _
     | Sig_modtype _
     | Sig_class_type _ -> true)
 

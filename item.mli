@@ -37,7 +37,7 @@ type t = (OCamlFind.Packages.t,
 	  Loc.t option, 
 	  (OCamlDoc.t option, unit) Result.t,
           Stype.t) record
-with conv(ocaml)
+[@@deriving conv{ocaml}]
 
 type pooled_type = 
   | Not_pooled of Stype.t
@@ -48,7 +48,7 @@ type pooled = (OCamlFind.Packages.t,
 	       Loc.t option, 
 	       (OCamlDoc.t option, unit) Result.t,
 	       pooled_type) record
-with conv(ocaml)
+[@@deriving conv{ocaml}]
 
 val rec_hcons : t -> t
 val format : Format.t -> t -> unit

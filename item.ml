@@ -7,8 +7,8 @@ open Ocaml_conv
 
 open Stype_core
 
-type virtual_flag = Asttypes.virtual_flag = Virtual | Concrete with conv(ocaml)
-type private_flag = Asttypes.private_flag = Private | Public with conv(ocaml)
+type virtual_flag = Asttypes.virtual_flag = Virtual | Concrete [@@deriving conv{ocaml}]
+type private_flag = Asttypes.private_flag = Private | Public [@@deriving conv{ocaml}]
 
 type 'typ kind = 
   | Class
@@ -23,7 +23,7 @@ type 'typ kind =
   | Type       of 'typ list (** type params *) * 'typ option * [ `Abstract | `Record | `Variant ]
   | Value      of 'typ
   | Package    of OCamlFind.Package.t * string list (** Ex. [ "Dbm" ] *)
-with conv(ocaml)
+[@@deriving conv{ocaml}]
 
 let kindkey_of_kind = function
   | Class        -> `Class
@@ -62,9 +62,9 @@ type ('packs, 'path, 'loc, 'doc, 'typ)  record = {
     loc   : 'loc;
     doc   : 'doc;
     kind  : 'typ kind;
-  } with conv(ocaml)
+  } [@@deriving conv{ocaml}]
 
-type ('a, 'b) result_t = [ `Ok of 'a | `Error of 'b ] with conv(ocaml) (* = Result.t *)
+type ('a, 'b) result_t = [ `Ok of 'a | `Error of 'b ] [@@deriving conv{ocaml}] (* = Result.t *)
 
 let rebind_error x = function
   | `Ok v -> `Ok v
@@ -90,21 +90,21 @@ let _stype_t_of_ocaml_exn = Ocaml_conv.exn stype_t_of_ocaml
 type pooled_type = 
   | Not_pooled of stype_t
   | Pooled of int
-with conv(ocaml)
+[@@deriving conv{ocaml}]
 
 type t = (OCamlFind.Packages.t,
 	  spath_t, 
 	  Loc.t option, 
           (OCamlDoc.t option, unit) result_t,
           stype_t) record
-with conv(ocaml)
+[@@deriving conv{ocaml}]
 
 type pooled = (OCamlFind.Packages.t,
 	       spath_t, 
 	       Loc.t option, 
 	       (OCamlDoc.t option, unit) result_t,
 	       pooled_type) record
-with conv(ocaml)
+[@@deriving conv{ocaml}]
 
 (* do not hcons itself: It is unlikely we have duped kinds throughout items *)
 let rec_hcons_k p = function

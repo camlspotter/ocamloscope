@@ -1,7 +1,6 @@
 open Spotlib.Spot
-open Ocaml_conv
 
-type t = string with conv(ocaml)
+type t = string [@@deriving conv{ocaml}]
 
 external of_string : string -> t = "%identity" 
 external to_string : t -> string = "%identity" 

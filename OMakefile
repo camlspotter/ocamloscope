@@ -13,18 +13,13 @@ OCAMLPACKS[] =
     spotlib
     findlib
     treeprint
-    orakuda
-    xml_conv
+    ppx_orakuda
     levenshtein
-
-CAMLP4PACKS[] = 
-    meta_conv
-    orakuda
 
 OCAMLFLAGS    += -thread
 
-OCAMLDEPFLAGS= -syntax camlp4o -package meta_conv.syntax,orakuda.syntax,pa_ounit.syntax
-OCAMLPPFLAGS = -syntax camlp4o -package meta_conv.syntax,orakuda.syntax,pa_ounit.syntax
+OCAMLDEPFLAGS= -package ppx_meta_conv,ppx_orakuda,ppx_test,ppx_monadic 
+OCAMLPPFLAGS = -package ppx_meta_conv,ppx_orakuda,ppx_test,ppx_monadic
 
 SHARED[]=
     conf
@@ -66,6 +61,7 @@ SHARED[]=
     distthresh
     match
     xParser
+    yParser
     query
     cachedQuery
     attr
@@ -92,12 +88,12 @@ MyOCamlLibrary(oco, $(SHARED))
 
 ###### XParser.mly
 
-xParser.ml xParser.mli: xParser.mly
-    ocamlyacc xParser.mly
-    sed -e 's/type token =/type token = Parser.token =/' xParser.ml > xParser.ml.tmp
-    mv xParser.ml.tmp xParser.ml
-    sed -e 's/type token =/type token = Parser.token =/' xParser.mli > xParser.mli.tmp
-    mv xParser.mli.tmp xParser.mli
+# xParser.ml xParser.mli: xParser.mly
+#     ocamlyacc xParser.mly
+#     sed -e 's/type token =/type token = Parser.token =/' xParser.ml > xParser.ml.tmp
+#     mv xParser.ml.tmp xParser.ml
+#     sed -e 's/type token =/type token = Parser.token =/' xParser.mli > xParser.mli.tmp
+#     mv xParser.mli.tmp xParser.mli
 
 
 # odoc_fold.ml: odoc/odoc_fold.ml

@@ -3,8 +3,6 @@
 open Spotlib.Spot
 open Path
 
-open Ocaml_conv
-
 (* We cannot forget the id numbers, because of the following examples:
 
    module type S = sig
@@ -31,7 +29,7 @@ and attr =
   | `Ident of t * (string * string option)
   | `AfterDot of string * string option
   ]
-with conv(ocaml_of)
+[@@deriving conv{ocaml_of}]
 
 type t_ = t
 
@@ -246,7 +244,7 @@ let read s =
   Util.ParseError.catch 
     (fun lexbuf ->
       lexbuf
-        |> XParser.pattern_longident Lexer.token
+        |> YParser.pattern_longident Lexer.token
         |> of_longident
         |> fun x -> `Ok x)
     (Lexing.from_string s)

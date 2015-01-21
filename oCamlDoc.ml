@@ -122,7 +122,7 @@ let run_doc cmt =
         end
     | x :: xs -> 
         (* exclude object files *)
-        match x =~ <:m<\.cm.*$>> with
+        match x =~ {m|\.cm.*$|m} with
         | Some _ -> filter_opts xs
         | _ -> x :: filter_opts xs
   in
@@ -186,7 +186,7 @@ module OCaml_conv = Ocaml_conv
 open OCaml_conv
 
 type kind = [ `Type | `Value | `Class | `Class_type | `Exception | `Module | `Module_type ] 
-with conv(ocaml)
+[@@deriving conv{ocaml}]
 
 type entry = string * location * info * kind 
 
@@ -239,7 +239,7 @@ and text_element = Odoc_types.text_element =
   | Custom of string * text
   | Target of string * string
 
-and text = text_element list with conv(ocaml)
+and text = text_element list [@@deriving conv{ocaml}]
 
 let oformat ppf info =
   match info.i_desc with
@@ -259,7 +259,7 @@ let format ppf info =
   | None -> ()
   | Some text -> 
       let open Format in
-      let sfix s = <:s<[\s\n\r]+/ /g>> s in
+      let sfix s = {s|[\s\n\r]+/ /g|s} s in
       let rec fs ppf = iter (f ppf)
       and f ppf = function
         | Raw s
@@ -351,12 +351,12 @@ type unix_process_status = Unix.process_status =
   | WEXITED of int
   | WSIGNALED of int
   | WSTOPPED of int
-with conv(ocaml)
+[@@deriving conv{ocaml}]
 
 type error = string list * [ `Chdir 
                            | `Exec of unix_process_status * string list
                            | `Load_dump of string ]
-with conv(ocaml)
+[@@deriving conv{ocaml}]
 
 let docs_of_cmt cmt =
   match run_doc cmt with

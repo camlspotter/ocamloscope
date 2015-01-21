@@ -1,5 +1,5 @@
 module CMIDigest : sig
-  type t with conv(ocaml)
+  type t [@@deriving conv{ocaml}]
   (** This is OCaml module interface checksum. Not file content MD5 checksum. *)
 
   val to_string : t -> string

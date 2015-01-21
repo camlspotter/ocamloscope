@@ -13,8 +13,8 @@ module Summary = struct
       | Env_type (s, id, _) ->
           fprintf ppf "type %s@," (Ident.name id);
           f s
-      | Env_exception (s, id, _) ->
-          fprintf ppf "exception %s@," (Ident.name id);
+      | Env_extension (s, id, _) ->
+          fprintf ppf "extension %s@," (Ident.name id);
           f s
       | Env_module (s, id, _) -> 
           fprintf ppf "module %s@," (Ident.name id);
@@ -30,6 +30,9 @@ module Summary = struct
           f s
       | Env_open (s, p) ->
           fprintf ppf "open %s@," (Path.name p);
+          f s
+      | Env_functor_arg (s, id) -> 
+          fprintf ppf "functor arg %s@," (Ident.name id);
           f s
     in
     fprintf ppf "@[<v>";

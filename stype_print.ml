@@ -4,11 +4,10 @@ open Stype_core
 
 module OCaml = Ocaml
 module OCaml_conv = Ocaml_conv
-open OCaml_conv
 
 let oformat = Stype_core.oformat
 
-type label = string with conv(ocaml)
+type label = string [@@deriving conv{ocaml}]
 
 type o = 
   | Otyp_alias   of o * string
@@ -33,7 +32,7 @@ type o =
 and attr = 
   [ `Ref of t ]
 
-with conv(ocaml_of)
+[@@deriving conv{ocaml_of}]
 
 let rec repr = function
   | Link {contents= `Linked ty} -> repr ty
@@ -573,7 +572,7 @@ let show t = Format.to_string (format_gen (fun t -> Spath.print ~packages:`Exact
 let read str = 
   Util.ParseError.catch 
     (fun lexbuf ->
-      let ty = XParser.poly_type Lexer.token lexbuf in
+      let ty = YParser.poly_type Lexer.token lexbuf in
       `Ok (Stype_conv.of_core_type ty))
     (Lexing.from_string str)
 
