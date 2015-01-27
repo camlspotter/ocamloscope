@@ -68,7 +68,7 @@ type ('a, 'b) result_t = [ `Ok of 'a | `Error of 'b ] [@@deriving conv{ocaml}] (
 
 let rebind_error x = function
   | `Ok v -> `Ok v
-  | `Error s -> `Error (Meta_conv.Error.Primitive_decoding_failure s, x, [`Node x])
+  | `Error s -> `Error (`Primitive_decoding_failure s, x, [`Node x])
 
 type spath_t = Spath.t
 let ocaml_of_spath_t l = Ocaml_conv.ocaml_of_string & Spath.show l

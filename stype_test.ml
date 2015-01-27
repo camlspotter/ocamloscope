@@ -90,7 +90,7 @@ let test_printer_compatibility ty =
           | Not_found -> `Error "not found"
           end
       | Ctype.Unify trace ->
-          `Error (Format.to_string (Typetexp.report_error Env.initial) (Typetexp.Type_mismatch trace))
+          `Error (Format.to_string (Typetexp.report_error Env.initial_unsafe_string) (Typetexp.Type_mismatch trace))
     with
     | `Error _s -> 
         (* !!% "skip: type_expr: %s: %S@." s s2' *)
@@ -115,7 +115,7 @@ let test_printer_compatibility ty =
 let bad_guys = [
 ]
 
-open Orakuda.Std
+open Ppx_orakuda.Std
 open Regexp.Infix
 
 let test items n =

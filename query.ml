@@ -1,6 +1,6 @@
 open Spotlib.Spot
 open List
-open Orakuda.Regexp.Infix
+open Ppx_orakuda.Regexp.Infix
 
 let () = Lexer.init () (* We need this ... *)
 
@@ -40,7 +40,7 @@ module Query = struct
         try
           let sitem = 
             Lexing.from_string str
-            |> XParser.pattern_longident Lexer.token
+            |> YParser.pattern_longident Lexer.token
             |> Spath.of_longident
           in 
           Some { kind = None; path= Some sitem; type_= None; dist0= false; }

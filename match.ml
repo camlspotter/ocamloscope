@@ -102,32 +102,32 @@ end) = struct
   let rec match_path pat p limit : (int * Spath.t) option =
     let open Spath in
     match pat, p with
-    | SPdot(n1, "_*_"), SPdot(m1, m2) ->
-        max (match_path n1 m1 limit) (match_path pat m1 limit)
-        >>= fun (limit, d1) -> return (limit, nhc_dot d1 m2)
-    | SPident n,   SPpack phack ->
-        match_package n phack limit 
-        >>= fun (limit, d) -> return (limit, nhc_attr (`Pack (pat, d)) p)
-    | SPident n,   SPdot(_m1, m2) ->
-        match_name n m2 limit 
-        >>= fun (limit, d2) -> return (limit, nhc_attr (`AfterDot d2) p)
-    | SPident n,   SPident m ->
-        match_name n m limit
-        >>= fun (limit, d) -> return (limit, nhc_attr (`Ident (pat, d)) p)
-    | SPdot(n1, n2), SPdot(m1, m2) ->
-        match_name n2 m2 limit 
-        >>= fun (limit, d2) -> match_path n1 m1 limit
-        >>= fun (limit, d1) -> return (limit, nhc_attr (`AfterDot d2) (nhc_dot d1 m2))
-    | SPapply (li1, _li2), SPapply (p1, p2) ->
+    | SPdot(n1, "_*_"), SPdot(m1, m2) -> do_;
+        (limit, d1) <-- max (match_path n1 m1 limit) (match_path pat m1 limit);
+        return (limit, nhc_dot d1 m2)
+    | SPident n,   SPpack phack -> do_;
+        (limit, d) <-- match_package n phack limit; 
+        return (limit, nhc_attr (`Pack (pat, d)) p)
+    | SPident n,   SPdot(_m1, m2) -> do_;
+        (limit, d2) <-- match_name n m2 limit;
+        return (limit, nhc_attr (`AfterDot d2) p)
+    | SPident n,   SPident m -> do_;
+        (limit, d) <-- match_name n m limit;
+        return (limit, nhc_attr (`Ident (pat, d)) p)
+    | SPdot(n1, n2), SPdot(m1, m2) -> do_;
+        (limit, d2) <-- match_name n2 m2 limit;
+        (limit, d1) <-- match_path n1 m1 limit;
+        return (limit, nhc_attr (`AfterDot d2) (nhc_dot d1 m2))
+    | SPapply (li1, _li2), SPapply (p1, p2) -> do_;
         (* A(B) matches with A(C) *)
         (* CR jfuruse: li2 is given but never used... *)
-        match_path li1 p1 limit 
-        >>= fun (limit, d) -> return (limit, nhc_apply d p2)
-    | li, SPapply (p1, p2) ->
+        (limit, d) <-- match_path li1 p1 limit;
+        return (limit, nhc_apply d p2)
+    | li, SPapply (p1, p2) -> do_;
         (* A matches with A(C) but with slight penalty *)
-        PathLimit.decr limit 
-        >>= match_path li p1 
-        >>= fun (limit, d) -> return (limit, nhc_apply d p2)
+        x <-- PathLimit.decr limit;
+        (limit, d) <-- match_path li p1 x;
+        return (limit, nhc_apply d p2)
     | _ -> fail
   
   let dummy_pattern_type_var = Any
@@ -372,21 +372,19 @@ end) = struct
                   filter_map (fun (x,xs) ->
                     match Array.unsafe_get x target_pos with
                     | None -> (* too much cost *) fail
-                    | Some (score,d) ->
+                    | Some (score,d) -> do_;
                         (* CR jfuruse: bug: We ignore the changes of expansions here *)
-                        PathLimit.decr ~by:score limit.score 
-                        >>= fun score -> perm_max (target_pos+1) xs { limit with score }
-                        >>= fun (score,ds) -> return (score,d::ds)) xss
+                        score <-- PathLimit.decr ~by:score limit.score;
+                        (score, ds) <-- perm_max (target_pos+1) xs { limit with score };
+                        return (score,d::ds)) xss
                 in
                 match matches with
                 | [] -> fail
                 | _ -> return & fold_left1 (fun (s1, d1) (s2, d2) -> if s1 >= s2 then (s1, d1) else (s2, d2)) matches
             
-          in
+          in do_;
     
-          perm_max 0 score_table limit
-          >>= fun (limit, ds) ->
-          
+          (limit, ds) <-- perm_max 0 score_table limit;
           return (limit, 
                   (combine ds targets 
                         |> filter_map (function
@@ -398,8 +396,8 @@ end) = struct
   
   (* Return distance, not score *)
   let match_path_type (p1, ty1) (p2, ty2) limit_path limit_type =
-    let open TypeLimit in
-    match_path p1 p2 limit_path; 
+    let open TypeLimit in 
+    match_path p1 p2 limit_path
     >>= fun (_, match_path) -> (* Once path test is done, we ignore its score. *)
     match_type ty1 ty2 (create limit_type)
     >>= fun (limit, match_xty) -> return (limit_type - limit.score, (match_path, match_xty))

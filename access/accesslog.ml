@@ -1,6 +1,5 @@
 open Spotlib.Spot
-open Orakuda.Std
-open Regexp.Infix
+open Ppx_orakuda.Regexp.Infix
 open List
 
 type t = {
@@ -18,7 +17,7 @@ let simplify_agent = id
 let lines = Result.from_Ok & File.to_lines "access.log"
 
 let accesses = flip filter_map lines (fun l ->
-  match l =~ <:m<(.*): access: connection for [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+ from [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+ \((.*)\) with X-Forwarded-For: ([^:]+): (.*)>> with
+  match l =~ {m|(.*): access: connection for [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+ from [0-9]+\.[0-9]+\.[0-9]+\.[0-9]+ \((.*)\) with X-Forwarded-For: ([^:]+): (.*)|m} with
   | None -> 
       !!% "??? %s@." l;
       None
@@ -36,7 +35,7 @@ let () =
   |> iter (fun (n, r) -> !!% "%d: %s@." !r n)
 
 let () = flip iter accesses & fun t ->
-  match t.path =~ <:m<\?q=(.*)>> with
+  match t.path =~ {m|\?q=(.*)|m} with
   | None -> ()
   | Some m ->
       prerr_endline & Netencoding.Url.decode ~plus:true m#_1

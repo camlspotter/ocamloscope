@@ -40,11 +40,10 @@ let tuple ts = Btype.newgenty (Ttuple ts)
 let arrow from to_ = Btype.newgenty & Tarrow ("", from, to_, Cok)
 
 (* exception E of t1 * t2 => t1 * t2 -> exn *)
-let type_of_exception ty_ed =
-  match ty_ed.Types.exn_args with
-  | [] -> Predef.type_exn
-  | [x] -> arrow x Predef.type_exn
-  | xs -> arrow (tuple xs) Predef.type_exn
+let type_of_exception = function
+  | Text_rebind _ -> assert false
+  | Text_decl (ctys, None) -> assert false (* exn? *)
+  | Text_decl (ctys, Some cty) -> arrow (tuple (List.map (fun t -> t.ctyp_type) ctys)) cty.ctyp_type
 
 (* type 'a t = C of t1 * t2 => C : t1 * t2 -> 'a t *)
 let type_of_constr tyid type_params tyargs tyopt =
@@ -140,38 +139,22 @@ and structure_item env path ty_env sitem =
           kind= Value vdesc.Types.val_type;
           env }
       ) ids
-  | Tstr_primitive (id, {loc}, vd) -> 
+  | Tstr_primitive {val_id=id; val_name= {loc}; val_val= vd} -> 
       let path = pdot path id in
       env, 
       [ { path; loc = loc, `Direct; 
-          kind= Value vd.val_val.Types.val_type; env } ]
+          kind= Value vd.Types.val_type; env } ]
   | Tstr_type decls -> 
-      let env = map (fun (id, _, _) -> id, pdot path id) decls @ env in
+      let env = map (fun {typ_id=id} -> id, pdot path id) decls @ env in
       env,
-      concat_map (fun (id, {Asttypes.loc}, td) ->
+      concat_map (fun {typ_id=id; typ_name= {Asttypes.loc}; typ_type=td} ->
         type_declaration env path loc id td) decls
-  | Tstr_exception (id, {loc}, ed) -> 
+  | Tstr_exception {ext_id=id; ext_name= {loc}; ext_kind= ed} -> 
       let path = pdot path id  in
       env,
       [ { path; loc= loc, `Direct; 
-          kind= Exception (type_of_exception ed.exn_exn); env } ]
-  | Tstr_exn_rebind (_id, _loc, _p, _) ->
-      env, []
-      (* CR jfuruse: not yet done *)
-(*
-      let _path = pdot path id in
-      let cds, _ = Env.find_type_descrs p ty_env in (* wrong *)
-      iter (fun cd -> prerr_endline cd.Types.cstr_name) cds;
-      assert false
-*)
-(*
-      
-      let vdesc = Env.find_value (Pident id) ty_env in
-      [{ pxacks=(); doc=(); path; loc= loc.loc; 
-         kind= ExceptionRebind p; alias= None; }]
-*)
-    (* Ident.t * string loc * Path.t * Longident.t loc *)
-  | Tstr_module (id, {loc}, mexp) ->  
+          kind= Exception (type_of_exception ed); env } ]
+  | Tstr_module {mb_id=id; mb_name= {loc}; mb_expr=mexp} ->  
       let path = pdot path id in
       (id, path) :: env,
       { path; loc= loc, `Direct; kind= Module; env }
@@ -182,7 +165,7 @@ and structure_item env path ty_env sitem =
       concat_map (fun (id, {Asttypes.loc}, _mty, mexp) -> 
         let path = pdot path id in (* CR jfuruse: calculated above already *)
         { path; loc= loc, `Direct; kind = Module; env } :: module_expr env path mexp) xs
-  | Tstr_modtype (id, {loc}, _mty (* TODO *)) -> 
+  | Tstr_modtype {mtd_id=id; mtd_name= {loc}; _ (* TODO *)} -> 
       let path = pdot path id in
       (id,path) :: env,
       [ { path; loc= loc, `Direct; kind= ModType; env } ]
@@ -210,7 +193,7 @@ and structure_item env path ty_env sitem =
       in
       env,
       concat_map (fun (_, _, x) -> class_type_declaration env path x) xs
-  | Tstr_include (mexp, sg) ->
+  | Tstr_include { incl_mod=mexp; incl_type= sg } ->
       (* CR jfuruse: constrain by sg *)
       env_ty_signature env path sg,
       let ts1 = module_expr env path mexp in

@@ -139,6 +139,7 @@ class virtual ['st] ofold_ref_kind =
             let __st = self#t_exception __st __x1 in __st
         | Element_type __x1 -> let __st = self#t_type __st __x1 in __st
         | Element_module_comment __x1 -> __st
+        | Element_type_extension _ -> assert false (* added *)
     method mmt : 'st -> mmt -> 'st =
       fun __st __value ->
         match __value with

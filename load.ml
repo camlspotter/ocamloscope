@@ -5,7 +5,6 @@ module Ty = Types
 module P = Printtyp
 open Cmt_format
 open Item
-open Ocaml_conv
 
 let remove_cache path =
   if File.Test._e path then
@@ -542,8 +541,9 @@ let load_dumped_items () =
     let items = ref & load_predefined () in
     let ocamlfind_opam_table = ref [] in
     Unix.Find.find ~follow_symlink:true [Conf.data_dir] ~f:(fun p ->
+      let open Ppx_orakuda.Regexp.Infix in
       match () with
-      | _ when [%p? Some _] <-- p#base =~ {m|^oco_.*\.bin$|m} ->
+      | _ when [%p? Some _] <-- (p#base =~ {m|^oco_.*\.bin$|m}) ->
           let { top_package; opam; items=items_of_pname } = load_dumped_package_group p#path in
           ocamlfind_opam_table := (top_package, opam) :: !ocamlfind_opam_table; 
           items := items_of_pname @ !items
@@ -570,7 +570,7 @@ let () =
 let load_items () =
   let res, (stat_before, stat_after) = Gc.with_compacts load_dumped_items () in
   !!% "DB words: %.2fMb@." 
-    (float (stat_after.Gc.live_words - stat_before.Gc.live_words)
+    (float (stat_after - stat_before)
      /. float (1024 * 1024 / (Sys.word_size / 8)));
   res
 

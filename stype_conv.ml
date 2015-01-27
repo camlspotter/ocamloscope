@@ -70,20 +70,16 @@ let of_core_type cty =
         Tuple (map of_core_type ctys)
     | Ptyp_constr ({txt= lid}, ctys) -> 
         Constr ( {dt_path = Spath.of_longident lid ;dt_aliases= ref None}, map of_core_type ctys)
-    | Ptyp_object fields ->
+    | Ptyp_object (fields, closed) ->
         Object (
           Some (
-            filter_map (function
-              | { pfield_desc= Pfield_var } -> None
-              | { pfield_desc= Pfield (s, cty) } -> Some (s, of_core_type cty)) fields,
-            (if exists (function { pfield_desc= Pfield_var } -> true | _ -> false) fields 
-             then `Open (Var !++var_cntr)
-             else `Closed)),
+            flip map fields (fun (s, _, cty) -> (s, of_core_type cty)),
+            
+            (match closed with Closed -> `Closed | Open -> `Open Nil (* CR jfuruse: need fix *))),
           None
         )
-    | Ptyp_class ({txt=lid}, ctys, []) -> 
+    | Ptyp_class ({txt=lid}, ctys) -> 
         Object (None, Some (Spath.of_longident lid, map of_core_type ctys))
-    | Ptyp_class (_, _ctys, _labels) -> assert false
     | Ptyp_alias (cty, s) -> Alias (of_core_type cty, s) 
     | Ptyp_variant (row_fields, closed_flag, labels_opt) -> 
         (* Parsetree.mli says: *)
@@ -96,8 +92,8 @@ let of_core_type cty =
          *)
         let more =
           match closed_flag, labels_opt with
-          | false, Some _ -> assert false
-          | true, None -> VariantClosed !++closed_cntr
+          | Open, Some _ -> assert false
+          | Closed, None -> VariantClosed !++closed_cntr
           | _ -> Var !++var_cntr
         in
 
@@ -108,7 +104,7 @@ let of_core_type cty =
 
         let sorted_rtags = 
           filter_map (function
-            | Rtag (l, b, ctys) -> Some (l, b, ctys)
+            | Rtag (l, _attrs, b, ctys) -> Some (l, b, ctys)
             | _ -> None) row_fields
           |> sort (fun (l1, _, _) (l2, _, _) -> compare l1 l2)
         in
@@ -125,12 +121,12 @@ let of_core_type cty =
 
         let xrow_fields = 
           match closed_flag, labels_opt with
-          | false, Some _ -> assert false
-          | false, None ->
+          | Open, Some _ -> assert false
+          | Open, None ->
               `Open (inherits @ map make_tag sorted_rtags)
-          | true, None ->
+          | Closed, None ->
               `Exact (inherits @ map make_tag sorted_rtags)
-          | true, Some present ->
+          | Closed, Some present ->
               `Closed (inherits @ map make_tag_full sorted_rtags, sort compare present)
         in
 
@@ -145,12 +141,15 @@ let of_core_type cty =
     | Ptyp_poly (vars, cty) -> 
         Poly (of_core_type cty,
               map (fun x -> of_core_type { ptyp_desc= Ptyp_var x;
-                                                ptyp_loc = Location.none }) vars) 
+                                           ptyp_loc = Location.none;
+                                           ptyp_attributes = [];
+                                         }) vars) 
     | Ptyp_package ptype ->
         let {txt=lid}, fields = ptype in
         Package (Spath.of_longident lid,
                  map (fun ({txt=lid}, cty) -> 
                    Spath.of_longident lid, of_core_type cty) fields)
+    | Ptyp_extension _ -> assert false (* CR jfuruse: todo *)
   in
   of_core_type cty
 

@@ -6,7 +6,7 @@ module M : sig
   
   val with_ocamled_cache :
     encoder:('a -> Ocaml.t) 
-    -> decoder:(Ocaml.t -> ('a, Ocaml.t Meta_conv.Error.t) Meta_conv.Result.t) 
+    -> decoder:(?trace:Ocaml.t Meta_conv.Error.trace -> Ocaml.t -> ('a, Ocaml.t Meta_conv.Error.t) Meta_conv.Result.t) 
     -> string 
     -> (unit -> 'a) 
     -> 'a
@@ -27,7 +27,10 @@ end = struct
     string ->
     (unit -> 'a list) -> [> ('a list, Ocaml.load_error) Meta_conv.Result.t ]
   *)
-  let with_ocamled_cache ~encoder ~decoder path loader = 
+  let with_ocamled_cache
+      ~encoder
+      ~decoder:(decoder : ?trace:Ocaml.t Meta_conv.Error.trace -> Ocaml.t -> ('a, Ocaml.t Meta_conv.Error.t) Meta_conv.Result.t)
+      path loader = 
     if File.Test._f path then begin
       (* CR jfuruse: ocamldoc style sanity check *)
       if Conf.show_cache_loading then !!% "Loading cache, %s ...@." path;
