@@ -1,6 +1,8 @@
 open Spotlib.Spot
 open List
 
+module Qx = Ppx_orakuda.Qx
+
 let get_version () = {qx|ocamlc -version|qx} |> snd |> hd |> Spotlib.Spot.String.chop_eols
 
 let is_ocaml_source_root d =

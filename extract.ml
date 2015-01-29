@@ -14,11 +14,10 @@ open Asttypes
 open Ident
 open Path
 open Typedtree
+open Spotlib.Spot
+open List (* bravely open it! *)
 
 module P = Printtyp
-
-open Spotlib.Spot
-open List
 
 type t = { 
   path  : Path.t;
@@ -27,12 +26,13 @@ type t = {
   env   : (Ident.t * Path.t) list (** To replace local idents in [kind] by paths *)
 }
 
+(** Make p.id *)
 let pdot path ident = Pdot (path, ident.name, ident.stamp)
 
-(* For module expr functor(A : sig .. end) under P, 
-   returns P(A) (the result) and P.A (inside argment) 
+(** For module expr functor(A : sig .. end) under P, 
+    returns P(A) (the result) and P.A (inside argment) 
 *)
-let p_functor p id =
+let psfunctor p id =
   Papply (p, Pident id),
   Pdot (p, id.name, id.stamp)
 
@@ -40,19 +40,14 @@ let tuple ts = Btype.newgenty (Ttuple ts)
 let arrow from to_ = Btype.newgenty & Tarrow ("", from, to_, Cok)
 
 (* exception E of t1 * t2 => t1 * t2 -> exn *)
-let type_of_extension_constructor_kind = function
-  | Text_rebind _ -> assert false
-  | Text_decl (_ctys, None) -> assert false (* exn? *)
-  | Text_decl (ctys, Some cty) -> arrow (tuple (List.map (fun t -> t.ctyp_type) ctys)) cty.ctyp_type
-
 let type_of_extension_constructor ec =
+  let open Btype in
   let open Types in
   arrow (tuple ec.ext_args) 
-    begin match ec.ext_ret_type with
+  & match ec.ext_ret_type with
     | None -> 
-        Btype.newgenty (Tconstr (ec.ext_type_path, ec.ext_type_params, ref Mnil))
-    | Some ty -> ty
-    end
+        newgenty (Tconstr (ec.ext_type_path, ec.ext_type_params, ref Mnil))
+    | Some ty -> ty (* CR jfuruse: not quite sure. need testing *)
 
 (* type 'a t = C of t1 * t2 => C : t1 * t2 -> 'a t *)
 let type_of_constr tyid type_params tyargs tyopt =
@@ -140,70 +135,94 @@ and structure_item env path ty_env sitem =
       (* let ty_env = sitem.str_env in *)
       let ids = let_bound_idents bindings in
       env,
-      map (fun id -> 
+      flip map ids & fun id -> 
         let vdesc = Env.find_value (Pident id) ty_env in
         let path = pdot path id in
-        { path; 
-          loc= vdesc.Types.val_loc, `Direct; 
-          kind= Value vdesc.Types.val_type;
-          env }
-      ) ids
+        { path
+        ; loc= vdesc.Types.val_loc, `Direct
+        ; kind= Value vdesc.Types.val_type
+        ; env 
+        }
   | Tstr_primitive {val_id=id; val_name= {loc}; val_val= vd} -> 
       let path = pdot path id in
       env, 
-      [ { path; loc = loc, `Direct; 
-          kind= Value vd.Types.val_type; env } ]
+      [ { path
+        ; loc = loc, `Direct
+        ; kind= Value vd.Types.val_type
+        ; env 
+        } 
+      ]
   | Tstr_type decls -> 
       let env = map (fun {typ_id=id} -> id, pdot path id) decls @ env in
       env,
-      concat_map (fun ({typ_id=id; typ_name= {Asttypes.loc}} as td) ->
-        type_declaration env path loc id td) decls
-  | Tstr_exception {ext_id=id; ext_name= {loc}; ext_kind= ed} -> 
+      flip concat_map decls & fun ({typ_id=id; typ_name= {loc}} as td) ->
+        type_declaration env path loc id td
+  | Tstr_exception { ext_id=id; ext_name= {loc}; ext_type=ec } -> 
       let path = pdot path id  in
       env,
-      [ { path; loc= loc, `Direct; 
-          kind= Exception (type_of_extension_constructor_kind ed); env } ]
+      [ { path
+        ; loc= loc, `Direct
+        ; kind= Exception (type_of_extension_constructor ec)
+        ; env 
+        } 
+      ]
   | Tstr_module {mb_id=id; mb_name= {loc}; mb_expr=mexp} ->  
       let path = pdot path id in
       (id, path) :: env,
-      { path; loc= loc, `Direct; kind= Module; env }
-      :: module_expr env path mexp
+      { path
+      ; loc= loc, `Direct
+      ; kind= Module
+      ; env 
+      } :: module_expr env path mexp
   | Tstr_recmodule xs -> 
       let env = map (fun {mb_id=id} -> id, pdot path id) xs @ env in
       env,
-      concat_map (fun {mb_id=id; mb_name= {Asttypes.loc}; mb_expr= mexp } -> 
+      flip concat_map xs & fun {mb_id=id; mb_name= {loc}; mb_expr= mexp } -> 
         let path = pdot path id in (* CR jfuruse: calculated above already *)
-        { path; loc= loc, `Direct; kind = Module; env } :: module_expr env path mexp) xs
+        { path
+        ; loc= loc, `Direct
+        ; kind = Module
+        ; env 
+        } :: module_expr env path mexp
   | Tstr_modtype {mtd_id=id; mtd_name= {loc}; _ (* TODO *)} -> 
       let path = pdot path id in
       (id,path) :: env,
-      [ { path; loc= loc, `Direct; kind= ModType; env } ]
+      [ { path
+        ; loc= loc, `Direct
+        ; kind= ModType
+        ; env 
+        } ]
       (* @ in_mty (module_type path mty) *)
   | Tstr_open _ -> env, []
   | Tstr_class xs ->
       let env = 
-        concat_map (fun (cl_decl, _, _) ->
+        flip concat_map xs (fun (cl_decl, _, _) ->
           map (fun id -> id, pdot path id) 
-            [ cl_decl.ci_id_class;
-              cl_decl.ci_id_class_type;
-              cl_decl.ci_id_object;
-              cl_decl.ci_id_typesharp ]) xs @ env
+            [ cl_decl.ci_id_class
+            ; cl_decl.ci_id_class_type
+            ; cl_decl.ci_id_object
+            ; cl_decl.ci_id_typesharp 
+            ])
+        @ env
       in
       env,
-      concat_map (fun (cl_decl, _, _) -> class_declaration env path cl_decl) xs
+      flip concat_map xs & fun (cl_decl, _, _) -> 
+        class_declaration env path cl_decl
   | Tstr_class_type xs ->
       let env = 
-        concat_map (fun (_, _, cl_decl) ->
+        flip concat_map xs (fun (_, _, cl_decl) ->
           map (fun id -> id, pdot path id) 
-            [ cl_decl.ci_id_class;
-              cl_decl.ci_id_class_type;
-              cl_decl.ci_id_object;
-              cl_decl.ci_id_typesharp ]) xs @ env
+            [ cl_decl.ci_id_class
+            ; cl_decl.ci_id_class_type
+            ; cl_decl.ci_id_object
+            ; cl_decl.ci_id_typesharp 
+            ]) 
+        @ env
       in
       env,
-      concat_map (fun (_, _, x) -> class_type_declaration env path x) xs
+      flip concat_map xs & fun (_, _, x) -> 
+        class_type_declaration env path x
   | Tstr_include { incl_mod=mexp; incl_type= sg } ->
-      (* CR jfuruse: constrain by sg *)
       env_ty_signature env path sg,
       let ts1 = module_expr env path mexp in
       let ts2 = ty_signature env !!!(sitem.str_env) mexp.mod_loc path sg in
@@ -253,13 +272,12 @@ and signature_item env path sgitem = match sgitem.sig_desc with
   | Tsig_type type_decls ->
       let env = map (fun {typ_id=id} -> (id, pdot path id)) type_decls @ env in
       env,
-      concat_map (fun ({typ_id=id; typ_name= {Asttypes.loc}} as tdecl) ->
+      flip concat_map type_decls & fun ({typ_id=id; typ_name= {loc}} as tdecl) ->
         type_declaration env path loc id tdecl
-      ) type_decls 
-  | Tsig_exception {ext_id=id; ext_name={loc}; ext_kind} -> 
+  | Tsig_exception { ext_id=id; ext_name={loc}; ext_type=ec } -> 
       let path = pdot path id in 
       env, 
-      [ { path; loc= loc, `Direct; kind= Exception (type_of_extension_constructor_kind ext_kind); env } ]
+      [ { path; loc= loc, `Direct; kind= Exception (type_of_extension_constructor ec); env } ]
   | Tsig_module {md_id=id; md_name= {loc}; md_type= mty} -> 
       let path = pdot path id in
       (id,path)::env,
@@ -267,10 +285,10 @@ and signature_item env path sgitem = match sgitem.sig_desc with
   | Tsig_recmodule xs ->
       let env = map (fun {md_id=id} -> id, pdot path id) xs @ env in 
       env,
-      concat_map (fun {md_id=id; md_name= {Asttypes.loc}; md_type= mty} ->
+      flip concat_map xs & fun {md_id=id; md_name= {loc}; md_type= mty} ->
         let path = pdot path id in (* CR jfuruse: calculated above already *)
-        { path; loc= loc, `Direct; kind= Module; env } :: module_type env path mty) xs
-  | Tsig_modtype {mtd_id=id; mtd_name={Asttypes.loc}} -> 
+        { path; loc= loc, `Direct; kind= Module; env } :: module_type env path mty
+  | Tsig_modtype {mtd_id=id; mtd_name={loc}} -> 
       let path = pdot path id in
       (id, path) :: env,
       [ { path; loc= loc, `Direct; kind= ModType; env } ]
@@ -282,23 +300,25 @@ and signature_item env path sgitem = match sgitem.sig_desc with
       restrict ~by:ts2 ts1
   | Tsig_class clds -> 
       let env = 
-        concat_map (fun cl_decl ->
+        flip concat_map clds (fun cl_decl ->
           map (fun id -> id, pdot path id)
             [ cl_decl.ci_id_class;
               cl_decl.ci_id_class_type;
               cl_decl.ci_id_object;
-              cl_decl.ci_id_typesharp ]) clds @ env
+              cl_decl.ci_id_typesharp ]) 
+        @ env
       in
       env,
       concat_map (class_description env path) clds
   | Tsig_class_type cltys ->
       let env = 
-        concat_map (fun cl_decl ->
+        flip concat_map cltys (fun cl_decl ->
           map (fun id -> id, pdot path id)
             [ cl_decl.ci_id_class;
               cl_decl.ci_id_class_type;
               cl_decl.ci_id_object;
-              cl_decl.ci_id_typesharp ]) cltys @ env
+              cl_decl.ci_id_typesharp ]) 
+        @ env
       in
       env,
       concat_map (class_type_declaration env path) cltys
@@ -335,7 +355,7 @@ and ty_signature_item env ty_env loc path sgitem =
   | Sig_class_type (id, ctd, _) -> 
       let env = (id, pdot path id) :: env in
       env, 
-     ty_class_type_declaration env loc path id ctd
+      ty_class_type_declaration env loc path id ctd
 
 and module_expr env path (mexp : module_expr) =
   (* let env = mexp.mod_env in *)
@@ -344,7 +364,7 @@ and module_expr env path (mexp : module_expr) =
   | Tmod_ident _ -> ty_module_type env !!!(mexp.mod_env) mexp.mod_loc path mexp.mod_type
   | Tmod_functor (id, _loc, _amty, mexp) ->
       (* module P(ID:amty) = mexp  =>  P(ID).x = mexp.x  for each x in mexp *)
-      let path_result, _path_inside = p_functor path id in
+      let path_result, _path_inside = psfunctor path id in
       (* { pxacks=(); doc=(); path = path_result; loc= loc.loc; kind= Module; alias = None; } :: *)
       (* { pxacks=(); doc=(); path = path_inside; loc = loc.loc; kind = Module; flag = `Exists; alias= None } :: *)
       (* in_mty (module_type path_inside amty) :: *)
@@ -376,7 +396,7 @@ and module_type env path mty =
   match mty.mty_desc with
   | Tmty_signature sg -> signature env path sg
   | Tmty_functor (id, _loc, _amty, rmty) -> 
-      let path_result, path_inside = p_functor path id in
+      let path_result, path_inside = psfunctor path id in
       (* { pxacks=(); doc=(); path= path_result; loc= loc.loc; kind= Module; alias= None } ::
          { pxacks=(); doc=(); path= path_inside; loc= loc.loc; kind= Module; alias= None } :: *)
       (* in_mty (module_type path_inside amty) :: *)
@@ -410,7 +430,7 @@ and ty_module_type env ty_env loc path (mty : Types.module_type) =
       [] (* failed to scrape *) (* CR jfuruse: we should print out warning *)
   | Mty_signature sg -> ty_signature env ty_env loc path sg
   | Mty_functor (id, _amty, rmty) -> 
-      let path_result, path_inside = p_functor path id in
+      let path_result, path_inside = psfunctor path id in
       let env = (id, path_inside) :: env in
       ty_module_type env ty_env loc path_result rmty
   | Mty_alias _ -> assert false
@@ -434,7 +454,7 @@ and type_declaration env path loc tyid td =
       (* Typedtree.Ttype_variant misses GADT return type,
          so we try to retrienve it from Types.Type_variant. *)
       map2 (fun
-        {cd_name= {Asttypes.loc}} {Types.cd_id=id; cd_args=tyargs; cd_res=gadt_tyopt (* cd_loc ??!? CR jfuruse *) } -> 
+        {cd_name= {loc}} {Types.cd_id=id; cd_args=tyargs; cd_res=gadt_tyopt (* cd_loc ??!? CR jfuruse *) } -> 
           let path = pdot path id in
           { path; loc= loc, `Direct; env;
             kind= Constr (type_of_constr tyid td.typ_type.Types.type_params
@@ -446,7 +466,7 @@ and type_declaration env path loc tyid td =
         
   | Ttype_record fields
       (* (Ident.t * string loc * mutable_flag * core_type * Location.t) list *) ->
-      map (fun {ld_id=id; ld_name={Asttypes.loc}; ld_type= ty} ->
+      map (fun {ld_id=id; ld_name={loc}; ld_type= ty} ->
         let path = pdot path id in
         { path; loc= loc, `Direct; env; 
           kind= Field (type_of_field tyid td.typ_type.Types.type_params ty.ctyp_type) }
@@ -455,31 +475,32 @@ and type_declaration env path loc tyid td =
 and ty_type_declaration env loc path tyid td = 
   let open Types in
   let path' = pdot path tyid in
-  { path= path'; loc= loc, `Direct; env; 
-    kind= Type (td.type_params,
+  { path= path'
+  ; loc= loc, `Direct
+  ; env
+  ; kind= Type (td.type_params,
                 td.type_manifest,
                 match td.type_kind with
                 | Type_open -> assert false
                 | Type_abstract -> `Abstract
                 | Type_variant _ -> `Variant
-                | Type_record _ -> `Record) }
-  :: 
-  match td.type_kind with
+                | Type_record _ -> `Record) 
+  } 
+  :: match td.type_kind with
   | Type_open -> assert false (* CR jfuruse: not yet *)
   | Type_abstract -> []
   | Type_variant vars (* (Ident.t * type_expr list * type_expr option) list *) ->
-      map (function
-        | {Types.cd_id=id; cd_args= tyargs; cd_res= tyopt (* gadt return *)} -> 
-            let path = pdot path id in
-            { path; loc= loc, `Direct; env;
-              kind= Constr (type_of_constr tyid td.type_params tyargs tyopt) } 
-      ) vars
+      flip map vars & fun
+        {Types.cd_id=id; cd_args= tyargs; cd_res= tyopt (* gadt return *)} -> 
+          let path = pdot path id in
+          { path; loc= loc, `Direct; env;
+            kind= Constr (type_of_constr tyid td.type_params tyargs tyopt) } 
 
   | Type_record (fields, _rec_repr) -> (*  (Ident.t * mutable_flag * type_expr) list * record_representation *)
-      map (fun {Types.ld_id=id; ld_type=ty} -> (* CR jfuruse: mutables *)
+      flip map fields & fun {Types.ld_id=id; ld_type=ty} -> (* CR jfuruse: mutables *)
         let path = pdot path id in
         { path; loc= loc, `Direct; env; 
-          kind= Field (type_of_field tyid td.type_params ty) }) fields
+          kind= Field (type_of_field tyid td.type_params ty) }
 
 and class_declaration env path0 cl_decl =
     (* env is already enriched *)
