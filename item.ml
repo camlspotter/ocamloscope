@@ -20,7 +20,7 @@ type 'typ kind =
   | Method     of private_flag * virtual_flag * 'typ
   | ModType
   | Module
-  | Type       of 'typ list (** type params *) * 'typ option * [ `Abstract | `Record | `Variant ]
+  | Type       of 'typ list (** type params *) * 'typ option * [ `Abstract | `Record | `Variant | `Open ]
   | Value      of 'typ
   | Package    of OCamlFind.Package.t * string list (** Ex. [ "Dbm" ] *)
 [@@deriving conv{ocaml}]
@@ -241,12 +241,16 @@ let format_gen ?(dont_omit_opened=false) ppf { packs; path; loc; doc; kind } =
           | None, `Abstract -> pp_print_string ppf "(* abstract *)"
           | None, `Record -> pp_print_string ppf "= { .. }"
           | None, `Variant -> pp_print_string ppf "= .. | .."
+          | None, `Open -> pp_print_string ppf "= .. <open> .."
           | Some ty, `Abstract ->
               fprintf ppf "=@ @[%a@]" format_stype ty
           | Some ty, `Record ->
               fprintf ppf "= @[%a@] =@ { .. }" format_stype ty
           | Some ty, `Variant ->
-              fprintf ppf "= @[%a@] =@ .. | .." format_stype ty)
+              fprintf ppf "= @[%a@] =@ .. | .." format_stype ty
+          | Some ty, `Open ->
+              fprintf ppf "= @[%a@] =@ .. <open> .." format_stype ty
+        )
         format_packs packs
         format_doc doc
 

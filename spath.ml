@@ -244,7 +244,7 @@ let read s =
   Util.ParseError.catch 
     (fun lexbuf ->
       lexbuf
-        |> YParser.pattern_longident Lexer.token
+        |> XParser.pattern_longident Lexer.token
         |> of_longident
         |> fun x -> `Ok x)
     (Lexing.from_string s)
