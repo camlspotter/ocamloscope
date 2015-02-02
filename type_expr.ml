@@ -9,7 +9,7 @@ let show = Format.to_string format
 let read str = 
   Util.ParseError.catch 
     (fun lexbuf ->
-      let ty = YParser.poly_type Lexer.token lexbuf in
+      let ty = XParser.poly_type Lexer.token lexbuf in
       (* We need this to avoid 
          The type constructor list would escape its scope: "int list"
       *)

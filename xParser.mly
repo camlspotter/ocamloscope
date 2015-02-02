@@ -497,6 +497,12 @@ The precedences must be listed from low to high.
 %type <Parsetree.expression> parse_expression
 %start parse_pattern
 %type <Parsetree.pattern> parse_pattern
+
+%start poly_type
+%type <Parsetree.core_type> poly_type
+%start pattern_longident
+%type <Longident.t> pattern_longident
+
 %%
 
 /* Entry points */
@@ -2190,9 +2196,8 @@ payload:
   | QUESTION pattern { PPat ($2, None) }
   | QUESTION pattern WHEN seq_expr { PPat ($2, Some $4) }
 ;
-%%
 
-(*
+/* additions */
 
 pattern_ident:
     UIDENT                                      { $1 }
@@ -2248,5 +2253,4 @@ pattern_longident:
   | pattern_longident LPAREN pattern_longident RPAREN  { Lapply($1, $3) }
 ;
 
-*)
-
+%%

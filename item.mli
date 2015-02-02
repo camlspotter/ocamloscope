@@ -12,7 +12,7 @@ type 'typ kind =
   | Method     of private_flag * virtual_flag * 'typ
   | ModType
   | Module
-  | Type       of 'typ list (** type params *) * 'typ option * [ `Abstract | `Record | `Variant ]
+  | Type       of 'typ list (** type params *) * 'typ option * [ `Abstract | `Record | `Variant | `Open ]
   | Value      of 'typ 
   | Package    of OCamlFind.Package.t * string list (** top modules, ex. "Dbm" *)
 

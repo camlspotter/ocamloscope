@@ -572,7 +572,7 @@ let show t = Format.to_string (format_gen (fun t -> Spath.print ~packages:`Exact
 let read str = 
   Util.ParseError.catch 
     (fun lexbuf ->
-      let ty = YParser.poly_type Lexer.token lexbuf in
+      let ty = XParser.poly_type Lexer.token lexbuf in
       `Ok (Stype_conv.of_core_type ty))
     (Lexing.from_string str)
 

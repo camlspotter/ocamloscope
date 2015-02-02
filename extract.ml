@@ -37,7 +37,10 @@ let psfunctor p id =
   Pdot (p, id.name, id.stamp)
 
 let tuple ts = Btype.newgenty (Ttuple ts)
-let arrow from to_ = Btype.newgenty & Tarrow ("", from, to_, Cok)
+let arrow from to_ =
+  match from.Types.desc with
+  | Ttuple [] -> to_
+  | _ -> Btype.newgenty & Tarrow ("", from, to_, Cok)
 
 (* exception E of t1 * t2 => t1 * t2 -> exn *)
 let type_of_extension_constructor ec =
@@ -45,8 +48,7 @@ let type_of_extension_constructor ec =
   let open Types in
   arrow (tuple ec.ext_args) 
   & match ec.ext_ret_type with
-    | None -> 
-        newgenty (Tconstr (ec.ext_type_path, ec.ext_type_params, ref Mnil))
+    | None -> newgenty (Tconstr (ec.ext_type_path, ec.ext_type_params, ref Mnil))
     | Some ty -> ty (* CR jfuruse: not quite sure. need testing *)
 
 (* type 'a t = C of t1 * t2 => C : t1 * t2 -> 'a t *)
@@ -84,7 +86,11 @@ let restrict ~by ts =
       let p = t.path in
       let k = Item.name_of_kind t.kind in
       match assoc_opt (Path.name p,k) ts with
-      | None -> assert false
+      | None ->
+          (* CR jfuruse: this must be an error but it happens since we ignore mty_alias for now *)
+          (* assert false *)
+          !!% "ERROR: Ignore restrict failure@.";
+          t
       | Some t' ->
           (* Which to choose? *)
           t'
@@ -418,7 +424,10 @@ and module_type env path mty =
       ty_module_type env !!!(mty.mty_env) mty.mty_loc path mty.mty_type
   | Tmty_typeof _mexp -> ty_module_type env !!!(mty.mty_env) mty.mty_loc path mty.mty_type
 
-  | Tmty_alias _ -> assert false (* CR jfuruse: not yet *)
+  | Tmty_alias _ ->
+      (* CR jfuruse: todo *)
+      !!% "We ignore Mty_alias %a@." Location.print mty.mty_loc;
+      []
       
 and ty_module_type env ty_env loc path (mty : Types.module_type) =
   let open Types in
@@ -433,7 +442,10 @@ and ty_module_type env ty_env loc path (mty : Types.module_type) =
       let path_result, path_inside = psfunctor path id in
       let env = (id, path_inside) :: env in
       ty_module_type env ty_env loc path_result rmty
-  | Mty_alias _ -> assert false
+  | Mty_alias _ ->
+      (* CR jfuruse : todo *)
+      !!% "We ignore Mty_alias %a@." Location.print loc;
+      []
 
 and type_declaration env path loc tyid td =
   let open Types in
@@ -481,13 +493,13 @@ and ty_type_declaration env loc path tyid td =
   ; kind= Type (td.type_params,
                 td.type_manifest,
                 match td.type_kind with
-                | Type_open -> assert false
+                | Type_open -> `Open
                 | Type_abstract -> `Abstract
                 | Type_variant _ -> `Variant
                 | Type_record _ -> `Record) 
   } 
   :: match td.type_kind with
-  | Type_open -> assert false (* CR jfuruse: not yet *)
+  | Type_open -> [] (* CR jfuruse: correct? *)
   | Type_abstract -> []
   | Type_variant vars (* (Ident.t * type_expr list * type_expr option) list *) ->
       flip map vars & fun

@@ -75,9 +75,11 @@ let opts = [
   "-p"               , Skip0; 
   "-pack"            , Skip0; 
   "-pp"              , Use1; 
+  "-ppx"             , Use1; 
   "-principal"       , Skip0; 
   "-rectypes"        , Use0; 
-  "-runtime-variant" , Skip1; 
+  "-runtime-variant" , Skip1;
+  "-safe-string"     , Use0;
   "-shared"          , Skip0; 
   "-short-paths"     , Skip0;
   "-strict-sequence" , Skip0; 

@@ -60,7 +60,6 @@ SHARED[]=
     distthresh
     match
     xParser
-    yParser
     query
     cachedQuery
     attr
@@ -87,12 +86,12 @@ MyOCamlLibrary(oco, $(SHARED))
 
 ###### XParser.mly
 
-# xParser.ml xParser.mli: xParser.mly
-#     ocamlyacc xParser.mly
-#     sed -e 's/type token =/type token = Parser.token =/' xParser.ml > xParser.ml.tmp
-#     mv xParser.ml.tmp xParser.ml
-#     sed -e 's/type token =/type token = Parser.token =/' xParser.mli > xParser.mli.tmp
-#     mv xParser.mli.tmp xParser.mli
+xParser.ml xParser.mli: xParser.mly
+    ocamlyacc xParser.mly
+    sed -e 's/type token =/type token = Parser.token =/' xParser.ml > xParser.ml.tmp
+    mv xParser.ml.tmp xParser.ml
+    sed -e 's/type token =/type token = Parser.token =/' xParser.mli > xParser.mli.tmp
+    mv xParser.mli.tmp xParser.mli
 
 
 # odoc_fold.ml: odoc/odoc_fold.ml
