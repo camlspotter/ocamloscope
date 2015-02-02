@@ -1,5 +1,5 @@
 open Spotlib.Spot
-open Xtest
+open Ppx_test.Test
 
 module Do(A : sig
   val items : Item.t array
@@ -13,7 +13,9 @@ end) = struct
         Exn.tee Spath.test_read i.Item.path
           ~handler:(fun _ -> !!% "ITEM on error: %a@." Item.format i)
       ) items
-  
+
+  let () = add spath
+
   let stype = 
     let print =
       label "print" & fun_ & fun _ ->
@@ -21,5 +23,7 @@ end) = struct
     in
     label "stype" & print
 
-  let () = run false & list [ spath; stype ]
+  let () = add stype
+
+  let () = run_tests false
 end

@@ -25,7 +25,6 @@ SHARED[]=
     conf
 #    log
     xSpotlib
-    xtest
     fileDigest
     xhashset
     xpath

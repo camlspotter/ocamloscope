@@ -24,7 +24,7 @@ module M = struct
                ; "--prof-match-types", Set prof_match_types, "profile type matchings"
                ] 
     in
-    parse (spec @ Xtest.arg_specs) f "oco"
+    parse (spec @ Ppx_test.Test.arg_specs) f "oco"
 end
 
 let dump = !M.dump
