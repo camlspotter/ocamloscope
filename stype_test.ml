@@ -124,24 +124,27 @@ let test items n =
   if List.exists (fun r -> (p =~ r) <> None) bad_guys then
     !!% "Skipping %s@." p
   else
-      try
-        let tys = Item.types_of_kind item.Item.kind in
-        iter (fun ty -> 
-          if not & Stype_print.cannot_read ty then read_show_read_show ty;
-          test_printer_compatibility ty) tys
-      with
-      | e ->
-          !!% "ERROR at item #%d@." n;
-          !!% "  @[%a@]@." Item.format item;
-          raise e
+    try
+      let tys = Item.types_of_kind item.Item.kind in
+      iter (fun ty -> 
+        if not & Stype_print.cannot_read ty then read_show_read_show ty;
+        test_printer_compatibility ty) tys
+    with
+    | e ->
+        !!% "ERROR at item #%d@." n;
+        !!% "  @[%a@]@." Item.format item;
+        raise e
 
 let test items =
 
   let path = "tests/types.txt" in
+  !!% "tests/types.txt ...@.";
   if File.Test._e path then File.iter_lines_exn path (fun l ->
-    test_printer_compatibility & Result.from_Ok & Stype.read l;
-    read_show_read l);
-
+    match Stype.read l with
+    | `Error e -> failwithf "Stype.read failed: %s: %s"  e l
+    | `Ok t ->
+        test_printer_compatibility t;
+        read_show_read l);
   !!% "tests/types.txt done@.";
 
   let ixs = Array.(init (length items) id) in
