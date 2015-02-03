@@ -74,7 +74,6 @@ let of_core_type cty =
         Object (
           Some (
             flip map fields (fun (s, _, cty) -> (s, of_core_type cty)),
-            
             (match closed with Closed -> `Closed | Open -> `Open Nil (* CR jfuruse: need fix *))),
           None
         )

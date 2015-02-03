@@ -55,18 +55,19 @@ let unescape_core_type ty =
   let open Ast_mapper in
   let open Location in
   let open Parsetree in
-  let lloc l = {l with txt= unescape_longident l.txt} in 
-  let typ _mapper ty = match ty.ptyp_desc with 
-    | Ptyp_constr (l, ctys) ->
-        { ty with ptyp_desc = Ptyp_constr (lloc l, ctys) }
-    | Ptyp_class (l, ctys) ->
-        { ty with ptyp_desc = Ptyp_class (lloc l, ctys) }
-    | Ptyp_package ((l, ltys)) ->
-        { ty with ptyp_desc = 
-            Ptyp_package (lloc l,
-                          List.map (fun (l,ty) -> lloc l, ty) ltys) }
-    | _ -> ty
+  let lloc l = {l with txt= unescape_longident l.txt} in
+  let extend super = 
+    let typ self ty = match ty.ptyp_desc with 
+      | Ptyp_constr (l, ctys) ->
+          super.typ self { ty with ptyp_desc = Ptyp_constr (lloc l, ctys) }
+      | Ptyp_class (l, ctys) ->
+          super.typ self { ty with ptyp_desc = Ptyp_class (lloc l, ctys) }
+      | Ptyp_package ((l, ltys)) ->
+          super.typ self { ty with ptyp_desc = Ptyp_package (lloc l, List.map (fun (l,ty) -> lloc l, ty) ltys) }
+      | _ -> super.typ self ty
+    in
+    { super with typ }
   in
-  let mapper = { default_mapper with typ } in
+  let mapper = extend default_mapper in
   mapper.typ mapper ty
     

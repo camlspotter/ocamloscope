@@ -572,9 +572,12 @@ let show t = Format.to_string (format_gen (fun t -> Spath.print ~packages:`Exact
 let read str = 
   Util.ParseError.catch 
     (fun lexbuf ->
-      let ty = XParser.poly_type Lexer.token lexbuf in
-      `Ok (Stype_conv.of_core_type ty))
-    (Lexing.from_string str)
+      let ty = Pattern_escape.unescape_core_type & XParser.poly_type Lexer.token lexbuf in
+      !!% "core_type: %a@." Pprintast.core_type ty;
+      let sty = Stype_conv.of_core_type ty in
+      !!% "stype: %a@." format sty;
+      `Ok sty)
+    (Lexing.from_string & Pattern_escape.escape_query str)
 
 let cannot_read = function
   | Arrow ("", _, Poly _) -> true
