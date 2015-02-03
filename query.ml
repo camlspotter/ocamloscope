@@ -40,7 +40,7 @@ module Query = struct
         try
           let sitem = 
             Lexing.from_string str
-            |> XParser.pattern_longident Lexer.token
+            |> XParser.longident Lexer.token
             |> Spath.of_longident
           in 
           Some { kind = None; path= Some sitem; type_= None; dist0= false; }

@@ -500,8 +500,8 @@ The precedences must be listed from low to high.
 
 %start poly_type
 %type <Parsetree.core_type> poly_type
-%start pattern_longident
-%type <Longident.t> pattern_longident
+%start longident
+%type <Longident.t> longident
 
 %%
 
@@ -2197,60 +2197,24 @@ payload:
   | QUESTION pattern WHEN seq_expr { PPat ($2, Some $4) }
 ;
 
-/* additions */
+/* addition */
 
-pattern_ident:
-    UIDENT                                      { $1 }
-  | LIDENT                                      { $1 }
-  | UNDERSCORE                                  { "_" }
-  | STAR                                        { "*" }
-  | LPAREN operator RPAREN                      { $2 }
-  | LPAREN UNDERSCORE RPAREN                    { "(_)" }
+ident2:
+    ident { $1 }
+  | LBRACKET RBRACKET                           { "[]" }
+  | LPAREN LBRACKET RBRACKET RPAREN             { "[]" }
+  | LPAREN RPAREN                               { "()" }
+  | LPAREN LPAREN RPAREN RPAREN                 { "()" }
+  | LPAREN COLONCOLON RPAREN                    { "::" }
   | FALSE                                       { "false" }
   | TRUE                                        { "true" }
-  | LPAREN LPAREN RPAREN RPAREN                 { "()" }
-  | LPAREN LBRACKET RBRACKET RPAREN             { "[]" }
-  | LPAREN COLONCOLON RPAREN                    { "::" }
+  | LPAREN operator RPAREN                      { $2 }
 ;
 
-package_ident:
-    simple_package_dotted                       { $1 }
-  | STAR LIDENT STAR                            { "*" ^ $2 ^ "*" }
-  | LBRACKET RBRACKET                           { "[]" }
-  | LBRACKET package_idents RBRACKET            { "[" ^ String.concat ";" (List.rev $2) ^ "]" }
-;
-
-simple_package_dotted:
-    simple_package_name                              { $1 }
-  | simple_package_dotted DOT simple_package_name    { $1 ^ "." ^ $3 }
-  | simple_package_dotted MINUS simple_package_name  { $1 ^ "-" ^ $3 }
-  | simple_package_dotted SHARP INT                  { $1 ^ "#" ^ string_of_int $3 }
-;
-
-simple_package_name:
-    UIDENT                                      { $1 }
-  | LIDENT                                      { $1 }
-  | FUNCTOR                                     { "functor" (* tyxml.functor *) }
-  | TYPE                                        { "type" (* eliom.syntax.type *) }
-  | WITH                                        { "with" (* odn.with *) }
-  | FOR { "for" (* nethttpd-for-netcgi2 *) }
-;
-
-package_idents:
-  | simple_package_dotted { [$1] }
-  | package_idents SEMI simple_package_dotted { $3 :: $1 }
-;
-
-pattern_longident:
-    pattern_ident                                      { Lident $1 }
-  | LBRACE package_ident RBRACE                        { Lident ("{" ^ $2 ^ "}") }
-  | pattern_longident DOT pattern_ident                { Ldot($1, $3) }
-  /* Very ugly workaround since *. is parsed as INFIXOP3 */      
-  | pattern_longident DOT INFIXOP3 pattern_ident       { match $3 with
-                                                         | "*." -> Ldot(Ldot($1, "_*_"), $4) 
-                                                             (* CR jfuruse: we can have "*.*." *)
-                                                         | _ -> failwith "pattern_longident: strange sym followed after *" }
-  | pattern_longident LPAREN pattern_longident RPAREN  { Lapply($1, $3) }
+longident:
+    ident2 { Lident $1 }
+  | longident DOT ident2 { Ldot ($1, $3) }
+  | longident LPAREN longident RPAREN { lapply $1 $3 }
 ;
 
 %%

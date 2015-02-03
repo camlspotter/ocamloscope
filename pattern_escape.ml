@@ -40,7 +40,7 @@ let escape_query s =
 let unescape_package n = 
   match String.is_prefix' magic n with
   | None -> n (* no need *)
-  | Some s -> unescape s
+  | Some s -> "{" ^ unescape s ^ "}"
 
 let unescape_longident li = 
   let open Longident in

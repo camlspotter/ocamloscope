@@ -242,12 +242,8 @@ let show p = Format.sprintf "%a" (format ~packages:`Exact ~predef:true ()) p
 
 let read s =
   Util.ParseError.catch 
-    (fun lexbuf ->
-      lexbuf
-        |> XParser.pattern_longident Lexer.token
-        |> of_longident
-        |> fun x -> `Ok x)
-    (Lexing.from_string s)
+    (XParser.longident Lexer.token *> Pattern_escape.unescape_longident *> of_longident *> fun x -> `Ok x)
+    (Lexing.from_string (Pattern_escape.escape_query s))
 
 let is_bizarre_id = function
   | "*dummy method*" -> true
