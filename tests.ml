@@ -8,7 +8,7 @@ end) = struct
   open A
 
   let spath =
-    label "spath" & label "print" & fun_ & fun _ ->
+    label "Spath" & label "Print" & fun_ & fun _ ->
       Array.iter (fun i -> 
         Exn.tee Spath.test_read i.Item.path
           ~handler:(fun _ -> !!% "ITEM on error: %a@." Item.format i)
@@ -18,10 +18,10 @@ end) = struct
 
   let stype = 
     let print =
-      label "print" & fun_ & fun _ ->
+      label "Print" & fun_ & fun _ ->
         Stype_test.test items
     in
-    label "stype" & print
+    label "Stype" & print
 
   let () = add stype
 
