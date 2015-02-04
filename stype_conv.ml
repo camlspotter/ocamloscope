@@ -74,7 +74,9 @@ let of_core_type cty =
         Object (
           Some (
             flip map fields (fun (s, _, cty) -> (s, of_core_type cty)),
-            (match closed with Closed -> `Closed | Open -> `Open Nil (* CR jfuruse: need fix *))),
+            (match closed with 
+            | Closed -> `Closed 
+            | Open -> `Open (Var !++var_cntr))),
           None
         )
     | Ptyp_class ({txt=lid}, ctys) -> 

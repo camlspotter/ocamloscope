@@ -37,19 +37,20 @@ let psfunctor p id =
   Pdot (p, id.name, id.stamp)
 
 let tuple ts = Btype.newgenty (Ttuple ts)
-let arrow from to_ =
-  match from.Types.desc with
-  | Ttuple [] -> to_
-  | _ -> Btype.newgenty & Tarrow ("", from, to_, Cok)
+let arrow from to_ = Btype.newgenty & Tarrow ("", from, to_, Cok)
 
 (* exception E of t1 * t2 => t1 * t2 -> exn *)
 let type_of_extension_constructor ec =
   let open Btype in
   let open Types in
-  arrow (tuple ec.ext_args) 
-  & match ec.ext_ret_type with
+  let rty = match ec.ext_ret_type with
     | None -> newgenty (Tconstr (ec.ext_type_path, ec.ext_type_params, ref Mnil))
     | Some ty -> ty (* CR jfuruse: not quite sure. need testing *)
+  in
+  match ec.ext_args with
+  | [] -> rty
+  | [x] -> arrow x rty
+  | _ -> arrow (tuple ec.ext_args) rty
 
 (* type 'a t = C of t1 * t2 => C : t1 * t2 -> 'a t *)
 let type_of_constr tyid type_params tyargs tyopt =

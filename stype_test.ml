@@ -140,7 +140,7 @@ let test items =
   let path = "tests/types.txt" in
   !!% "tests/types.txt ...@.";
   if File.Test._e path then File.iter_lines_exn path (fun l ->
-    prerr_endline & "Testing: " ^ l;
+    (* prerr_endline & "Testing: " ^ l; *)
     match Stype.read l with
     | `Error e -> failwithf "Stype.read failed: %s: %s"  e l
     | `Ok t ->
