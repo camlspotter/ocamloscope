@@ -16,9 +16,7 @@ let read_show_read s =
       let s'fix = sanitize s' in
 
       if sfix <> s'fix then begin
-        !!% "read => show:@.  Input =%S@.  Output=%S@.  FixI=%S@.  FixO=%S@.  Parsed=%a@."
-            s
-            s'
+        !!% "read => show:@.  FixI=%S@.  FixO=%S@.  Parsed=%a@."
             sfix
             s'fix
             Stype.oformat ty;
@@ -63,9 +61,14 @@ let read_show_read s =
             assert false
           end
 
-let read_show_read_show ty = read_show_read & show ty
-
-let test_read_show = read_show_read *< show
+let read_show_read_show ty =
+  try read_show_read & show ty
+  with
+  | e ->
+      !!% "@[<2>read_show_read_show failed:@ %s@ %a@]@."
+        (try show ty with _ -> "show failed")
+        Stype.oformat ty;
+     raise e 
 
 let test_printer_compatibility ty =
   let s2 = Format.to_string (Stype.format_gen (Spath.print ~predef:true)) ty in

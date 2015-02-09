@@ -2032,11 +2032,17 @@ clty_longident:
     LIDENT                                      { Lident $1 }
   | mod_ext_longident DOT LIDENT                { Ldot($1, $3) }
 ;
+/*
 class_longident:
     LIDENT                                      { Lident $1 }
   | mod_longident DOT LIDENT                    { Ldot($1, $3) }
 ;
-
+*/
+class_longident:
+    LIDENT                                      { Lident $1 }
+  | mod_ext_longident DOT LIDENT                    { Ldot($1, $3) } /* Need to extend */
+;
+  
 /* Toplevel directives */
 
 toplevel_directive:

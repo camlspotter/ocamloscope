@@ -36,7 +36,7 @@ let psfunctor p id =
   Papply (p, Pident id),
   Pdot (p, id.name, id.stamp)
 
-let tuple ts = Btype.newgenty (Ttuple ts)
+let tuple ts = assert (List.length ts > 1); Btype.newgenty (Ttuple ts)
 let arrow from to_ = Btype.newgenty & Tarrow ("", from, to_, Cok)
 
 (* exception E of t1 * t2 => t1 * t2 -> exn *)
