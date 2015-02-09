@@ -16,5 +16,5 @@ end) = struct
 
   let %TEST stype_print_ = Stype_test.test items
 
-  let () = run_tests false
+  let () = run_tests false |> Report.print
 end
