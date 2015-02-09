@@ -25,5 +25,5 @@ end) = struct
 
   let () = add stype
 
-  let () = run_tests false
+  let () = run_tests false |> Report.print_then_exit
 end
