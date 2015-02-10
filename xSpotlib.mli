@@ -12,6 +12,8 @@ end
 module Base : sig
   val (!++) : int ref -> int
   (** Get then incr. *)
+
+  val timed_message : string -> ('a -> 'b) -> 'a -> 'b
 end
 
 module Gc : sig

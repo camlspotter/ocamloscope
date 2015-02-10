@@ -15,14 +15,13 @@ type 'typ kind =
   | Type       of 'typ list (** type params *) * 'typ option * [ `Abstract | `Record | `Variant | `Open ]
   | Value      of 'typ 
   | Package    of OCamlFind.Package.t * string list (** top modules, ex. "Dbm" *)
+(* CR jfuruse: Exception is a special case of `Open Type *)
 
 val kindkey_of_kind : 'a kind -> Kindkey.extracted
 
 val name_of_kind : 'a kind -> string
 
 val types_of_kind : 'a kind -> 'a list
-
-(* with conv(json) *)
 
 type ('packs, 'path, 'loc, 'doc, 'typ)  record = {
     packs : 'packs;

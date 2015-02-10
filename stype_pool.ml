@@ -1,16 +1,16 @@
 (* The pool of types *)
 
-(* Currently we have 500k types in the db but only it contains
-   only 350k unique types. 
+(* Currently we have 500k types in the db 
+   but it contains only 350k unique types. 
 
-   Top 2400 types of 350k uniques are shared more than 10 times.
+   Top  2400 types of 350k uniques are shared more than 10 times.
 
    Top 17800 types are shared more than 3 times.
    
    Top 58000 types are shared at least once.
 
-   We can skip lots of type matches by performing the match only once
-   for each unique type.
+   We can skip lots of type matches by avoiding the same matches
+   against the shared types.
 *)
 
 open Spotlib.Spot
@@ -84,6 +84,11 @@ let poolize items =
   in
   Array.map (wrap_item wrap) items,
   a
+
+let poolize items = 
+  XSpotlib.Base.timed_message 
+    (!% "Making type pool (%d items)" (Array.length items))
+    poolize items
 
 let unpool_item a i = 
   let wrap = function

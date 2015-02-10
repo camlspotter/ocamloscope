@@ -25,6 +25,18 @@ module Base = struct
     let v = !r in
     incr r;
     v
+
+  let timed_message mes f v =
+    prerr_endline (mes ^ "...");
+    let res, secs = Spotlib.Xunix.timed (Spotlib.Exn.catch f) v in
+    match res with
+    | `Ok v -> 
+        Spotlib.Base.(!!%) "%s: done (%.1f secs)@." mes secs;
+        v
+    | `Error (`Exn e) ->
+        Spotlib.Base.(!!%) "%s: raised an exception (%.1f secs)@." mes secs;
+        raise e
+
 end
 
 module Gc = struct

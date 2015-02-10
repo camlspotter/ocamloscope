@@ -1,5 +1,8 @@
 val dump : bool
+(** do dump or not *)
+
 val compiler_source_dir : string
+(** compiler source code directory, to obtain stdlib cmts *)
 
 val args : string list
 (** args without option flags *)

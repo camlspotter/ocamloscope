@@ -402,9 +402,6 @@ and module_type env path mty =
   | Tmty_signature sg -> signature env path sg
   | Tmty_functor (id, _loc, _amty, rmty) -> 
       let path_result, path_inside = psfunctor path id in
-      (* { pxacks=(); doc=(); path= path_result; loc= loc.loc; kind= Module; alias= None } ::
-         { pxacks=(); doc=(); path= path_inside; loc= loc.loc; kind= Module; alias= None } :: *)
-      (* in_mty (module_type path_inside amty) :: *)
       let env = (id, path_inside) :: env in
       module_type env path_result rmty
   | Tmty_with (_mty', _constraints) -> 

@@ -51,11 +51,9 @@ let format_package ppf p =
   if p.base then Format.string ppf p.name else Format.fprintf ppf "%s.%s" p.name p.version
 
 let get_installed () =
-  Unix.Command.(
-    shell "opam list -i" 
-    |> get_stdout
-    |> must_exit_with 0
-  ) |> filter_map (fun line ->
+  let open Command in
+  shell_exec "opam list -i" (must_exit_with 0) force_stdout
+  |> filter_map (fun line ->
     let line = String.chop_eols line in
     match () with
     | _ when [%p? Some _] <-- (line =~ {m|^Installed packages|m}) ->
