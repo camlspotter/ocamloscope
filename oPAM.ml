@@ -12,13 +12,11 @@ open Ppx_orakuda.Regexp.Infix
 
 let get_prefix () =
   let prefix =
-    match Unix.Command.(
-      shell "opam config var prefix" 
-      |> get_stdout 
-      |> must_exit_with 0
-    ) with
-    | [line] -> String.chop_eols line
-    | _ -> assert false
+    let open Command in
+    shell_exec "opam config var prefix" (must_exit_with 0) & fun str ->
+      force_stdout str |> function
+        | line :: _ -> String.chop_eols line
+        | [] -> failwith "empty result"
   in
     
   let rec test = function
@@ -31,16 +29,15 @@ let get_prefix () =
   prefix
 
 let get_current_switch () =
-  let open Unix.Command in
-  shell "opam switch"
-  |> get_stdout
-  |> must_exit_with 0
-  |> filter_map (fun s ->
-    Option.map (fun x -> x#_1) (s =~ {m|^([^\s]+)\s+C\s+|m}))
-  |> function
-      | [sw] -> sw
-      | [] -> assert false
-      | _ -> assert false
+  let open Command in
+  shell_exec "opam switch" (must_exit_with 0) & fun str ->
+    force_stdout str
+    |> filter_map (fun s ->
+      Option.map (fun x -> x#_1) (s =~ {m|^([^\s]+)\s+C\s+|m}))
+    |> function
+        | [sw] -> sw
+        | [] -> assert false
+        | _ -> assert false
 
 type package = {
   name : string;
