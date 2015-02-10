@@ -52,11 +52,11 @@ end) = struct
   let error = ref false
 
   let match_name 
-      : string  (* pattern *)
-      -> string (* target *)
-      -> int    (* limit (upperbound) *)
-      -> (int * (string (* the matched *) 
-                 * string option(* the corresponding pattern. This is always Some but it is intentional *)
+      : string  (** pattern *)
+      -> string (** target *)
+      -> int    (** limit (upperbound) *)
+      -> (int * (string (** the matched *) 
+                 * string option(** the corresponding pattern. This is always Some but it is intentional *)
          )) option
   = fun n m limit ->
     let n0 = n in
@@ -396,11 +396,10 @@ end) = struct
   
   (* Return distance, not score *)
   let match_path_type (p1, ty1) (p2, ty2) limit_path limit_type =
-    let open TypeLimit in 
-    match_path p1 p2 limit_path
-    >>= fun (_, match_path) -> (* Once path test is done, we ignore its score. *)
-    match_type ty1 ty2 (create limit_type)
-    >>= fun (limit, match_xty) -> return (limit_type - limit.score, (match_path, match_xty))
+    let open TypeLimit in do_;
+    (limit_path', match_path) <-- match_path p1 p2 limit_path;
+    (limit, match_xty) <-- match_type ty1 ty2 (create ( limit_type - limit_path +  limit_path'));
+    return (limit_type - limit.score, (match_path, match_xty))
     
   
   (* Return distance, not score *)
