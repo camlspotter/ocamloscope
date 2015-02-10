@@ -185,8 +185,7 @@ and structure_item env path ty_env sitem =
       let env = map (fun {mb_id=id} -> id, pdot path id) xs @ env in
       env,
       flip concat_map xs & fun {mb_id=id; mb_name= {loc}; mb_expr= mexp } -> 
-        let path = pdot path id in (* CR jfuruse: calculated above already *)
-        { path
+        { path= pdot path id
         ; loc= loc, `Direct
         ; kind = Module
         ; env 
@@ -293,8 +292,7 @@ and signature_item env path sgitem = match sgitem.sig_desc with
       let env = map (fun {md_id=id} -> id, pdot path id) xs @ env in 
       env,
       flip concat_map xs & fun {md_id=id; md_name= {loc}; md_type= mty} ->
-        let path = pdot path id in (* CR jfuruse: calculated above already *)
-        { path; loc= loc, `Direct; kind= Module; env } :: module_type env path mty
+        { path= pdot path id; loc= loc, `Direct; kind= Module; env } :: module_type env path mty
   | Tsig_modtype {mtd_id=id; mtd_name={loc}} -> 
       let path = pdot path id in
       (id, path) :: env,
@@ -426,15 +424,14 @@ and module_type env path mty =
   | Tmty_typeof _mexp -> ty_module_type env !!!(mty.mty_env) mty.mty_loc path mty.mty_type
 
   | Tmty_alias _ ->
-      (* CR jfuruse: todo *)
-      !!% "We ignore Mty_alias %a@." Location.print mty.mty_loc;
-      []
+      (* CR jfuruse: check *)
+      ty_module_type env mty.mty_env mty.mty_loc path mty.mty_type
       
 and ty_module_type env ty_env loc path (mty : Types.module_type) =
   let open Types in
-  match Mtype.scrape ty_env mty with
+  match Env.scrape_alias ty_env mty with
   | Mty_ident p -> 
-      !!% "Failed to scrape %s@.  @[%a@]@." 
+      !!% "Failed to scrape ident %s@.  @[%a@]@." 
         (Path.name p)
         Xenv.Summary.format ty_env;
       [] (* failed to scrape *) (* CR jfuruse: we should print out warning *)
@@ -443,10 +440,11 @@ and ty_module_type env ty_env loc path (mty : Types.module_type) =
       let path_result, path_inside = psfunctor path id in
       let env = (id, path_inside) :: env in
       ty_module_type env ty_env loc path_result rmty
-  | Mty_alias _ ->
-      (* CR jfuruse : todo *)
-      !!% "We ignore Mty_alias %a@." Location.print loc;
-      []
+  | Mty_alias p ->
+      !!% "Failed to scrape alias %s@.  @[%a@]@." 
+        (Path.name p)
+        Xenv.Summary.format ty_env;
+      [] (* failed to scrape *) (* CR jfuruse: we should print out warning *)
 
 and type_declaration env path loc tyid td =
   let open Types in
