@@ -97,7 +97,7 @@ module Query = struct
       | _ -> None
   
     let query s = 
-      let s = {s|(^\s+|\s+$)//g|s} s in
+      let s = {s|(^\s+|\s+$)//g|s} s in (* trim prefix and postfix spaces *)
       match s with
       | "" -> None
       | _ ->
@@ -338,7 +338,6 @@ let query db qs0 =
       | (None | Some `Exception ) , Exception typ
       | (None | Some `Field     ) , Field typ
       | (None | Some `Method    ) , Method (_, _, typ)
-      | (None | Some `Type      ) , Type (_, Some typ, _)
       | (None | Some `Value     ) , Value typ ->
           begin match lident_opt, matches_with_type with
           | None, None -> Some (10, `Nope)
