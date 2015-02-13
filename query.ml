@@ -460,5 +460,5 @@ let cli () =
     Stat.report items; exit 0 
   end;
     
-  cui & Load.PooledDB.poolize db
+  cui & Load.PooledDB.create db
 

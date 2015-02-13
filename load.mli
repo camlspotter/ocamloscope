@@ -22,7 +22,7 @@ module PooledDB : sig
     *)
   }
 
-  val poolize : DB.t -> t
+  val create : DB.t -> t
 end
 
 val dump_items : unit -> unit

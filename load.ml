@@ -1,18 +1,18 @@
 open Spotlib.Spot
 open List
-
-module Ty = Types
-module P = Printtyp
 open Cmt_format
 open Item
+
+module Ty  = Types
+module P   = Printtyp
+module OCP = OCamlFind.Package
 
 let remove_cache path =
   if File.Test._e path then
     try Sys.remove path with _ -> failwithf "Failed to remove an obsolete cache file: %s" path
 
 let final_cache_path = Conf.data_dir ^/ "oco.bin"
-
-module OCP = OCamlFind.Package
+(* The final data file carries everything *)
 
 let get_doc docs path loc desc = 
   match docs with
@@ -54,13 +54,17 @@ let get_doc docs path loc desc =
       in
       `Ok (find docs)
 
-let rec load root find_packages path 
-    : (Spath.t 
-       * (string * Location.t * [ `Direct | `Unknown ]) option 
-       * Stype.t Item.kind 
-       * [> `Error of unit | `Ok of OCamlDoc.t option ]
-      ) list
-    =
+let rec load 
+    : Path.t 
+    -> (file_path:string 
+        -> (OCamlFind.Package.t * string list) list option)
+    -> string 
+    -> (Spath.t *
+          (string * Location.t * [ `Direct | `Unknown ]) option *
+          Stype.t Item.kind *
+          [> `Error of unit | `Ok of OCamlDoc.t option ]) list = 
+  fun root find_packages path  ->
+
   Extract.reset_envs ();
 
   let cmt = match Cmt_format.read path with
@@ -542,8 +546,8 @@ let load_dumped_items () =
     let ocamlfind_opam_table = ref [] in
     Unix.Find.find ~follow_symlink:true [Conf.data_dir] ~f:(fun p ->
       let open Ppx_orakuda.Regexp.Infix in
-      match () with
-      | _ when [%p? Some _] <-- (p#base =~ {m|^oco_.*\.bin$|m}) ->
+      match p#base =~ {m|^oco_.*\.bin$|m} with
+      | Some _ ->
           let { top_package; opam; items=items_of_pname } = load_dumped_package_group p#path in
           ocamlfind_opam_table := (top_package, opam) :: !ocamlfind_opam_table; 
           items := items_of_pname @ !items
@@ -553,19 +557,13 @@ let load_dumped_items () =
   !!% "%d entries loaded@." (length items);
 
   (* debug *)
-  ocamlfind_opam_table |> iter (fun (p, opam_opt) ->
+  flip iter ocamlfind_opam_table (fun (p, opam_opt) ->
     !!% "%s : %a@." 
       p.OCP.name
       (Format.option OPAM.format_package) opam_opt);
 
   { items = Item.sort_items_by_arity (Array.of_list items);
     ocamlfind_opam_table = ocamlfind_opam_table }
-
-let () =
-  let open Gc in
-  let c = get () in
-  set { c with max_overhead = 100 }
-
 
 let load_items () =
   let res, (stat_before, stat_after) = Gc.with_compacts load_dumped_items () in
@@ -616,10 +614,12 @@ let load_items () =
   load_items () 
   |- fun _ ->
     let words = XSpotlib.Gc.used_words () in
-    !!% "words: %d@." words;
-    Gc.print_stat stderr; flush stderr
+    !!% "GC: words: %d@." words;
+    (* Gc.print_stat stderr; flush stderr; *)
+    ()
 
 module PooledDB = struct
+
   type t = {
     items : Item.pooled array;
     types : Stype.t array;
@@ -631,7 +631,7 @@ module PooledDB = struct
     *)
   }
       
-  let poolize db = 
+  let create db = 
     let items, types = Stype_pool.poolize db.DB.items in
     { items; types; ocamlfind_opam_table = db.DB.ocamlfind_opam_table }
 

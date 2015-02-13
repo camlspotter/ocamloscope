@@ -22,6 +22,7 @@ OCAMLDEPFLAGS= -package ppx_meta_conv,ppx_orakuda,ppx_test,ppx_monadic
 OCAMLPPFLAGS = -package ppx_meta_conv,ppx_orakuda,ppx_test,ppx_monadic
 
 SHARED[]=
+    init
     conf
 #    log
     xSpotlib
@@ -60,6 +61,7 @@ SHARED[]=
     distthresh
     match
     pattern_escape
+    xLexer
     xParser
     query
     cachedQuery
