@@ -51,7 +51,7 @@ end) = struct
 
   let error = ref false
 
-  let match_name 
+  let match_name_levenshtein
       : string  (** pattern *)
       -> string (** target *)
       -> int    (** limit (upperbound) *)
@@ -82,7 +82,43 @@ end) = struct
           in
           if dist >= upper_bound then fail
           else return (limit - dist, (m0, Some n0))
-  
+
+            
+  let match_name_substring 
+      : string  (** pattern *)
+      -> string (** target *)
+      -> int    (** limit (upperbound) *)
+      -> (int * (string (** the matched *) 
+                 * string option(** the corresponding pattern. This is always Some but it is intentional *)
+         )) option
+  = fun n m limit ->
+    let n0 = n in
+    let m0 = m in
+    match n with
+    | "_" | "_*_" -> return (limit, (m0, Some n0))
+    | "(_)" when (* operators *)
+        begin try match m.[0] with 
+        | 'A'..'Z' | 'a'..'z' | '_' | '0'..'9' | '#' (* class type *) -> false
+        | _ -> true
+          with _ -> false end ->
+        return (limit, (m, Some n))
+    | _ -> 
+        if n = m then return (limit, (m0, Some n0))
+        else
+          let n = String.lowercase n
+          and m = String.lowercase m in
+          let score = 
+            if String.is_substring ~needle:n m then
+              limit - (String.length m - String.length n)
+            else 0
+          in
+          if score <= 0 then fail 
+          else return (score, (m0, Some n0))
+
+  let match_name = match false with
+    | true  -> match_name_levenshtein
+    | false -> match_name_substring
+
   let match_package 
       : string (* pattern *)
       -> OCamlFind.Packages.t (* target *)
