@@ -84,6 +84,8 @@ module ParseError = struct
 
   let catch f lexbuf =
     try f lexbuf with
+    | Lexer.Error _ ->
+        `Error (string_of_position (Lexing.lexeme_start_p lexbuf) ^ ": Lexer error") 
     | Parsing.Parse_error ->
         `Error (string_of_position (Lexing.lexeme_start_p lexbuf) ^ ": Parse error") 
     | Syntaxerr.Escape_error ->
