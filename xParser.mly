@@ -2207,6 +2207,8 @@ payload:
 
 ident2:
     ident { $1 }
+  | STRING                                      { fst $1 } /* "*" */
+  | UNDERSCORE                                  { "_" }   
   | LBRACKET RBRACKET                           { "[]" }
   | LPAREN LBRACKET RBRACKET RPAREN             { "[]" }
   | LPAREN RPAREN                               { "()" }
