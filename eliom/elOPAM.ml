@@ -123,19 +123,22 @@ module Download = struct
       p.OPAM.name
       p.OPAM.version
 
-  let get_source_url p =
+  let get_source_url p =  Lwt.do_;
     let open Simplexmlparser in
-    lwt res = OcHttp.get_xml & package_page_url p in
-    Lwt.return & Result.(res >>= fun xmls ->
-      find_in_tree 
-        (function PCData _ -> [] | Element (_, _, xmls) -> xmls)
-        (function 
-          | Element ("a", tags, _) when List.mem ("title", "Download source") tags ->
-              List.assoc_opt "href" tags 
-          | PCData _ | Element _ -> None)
-        (Element ("", [], xmls))
-      |> Option.to_result)
-      
+    res <-- OcHttp.get_xml (package_page_url p);
+    Lwt.return &
+      match res with
+      | `Error e -> `Error e
+      | `Ok xmls ->
+          find_in_tree 
+            (function PCData _ -> [] | Element (_, _, xmls) -> xmls)
+            (function 
+              | Element ("a", tags, _) when List.mem ("title", "Download source") tags ->
+                  List.assoc_opt "href" tags 
+              | PCData _ | Element _ -> None)
+            (Element ("", [], xmls))
+          |> Option.to_result
+          
 (*
    <a href="https://github.com/UnixJunkie/lacc/archive/v0.1.tar.gz " title="Download source">https://github.com/UnixJunkie/lacc/archive/v0.1.tar.gz </a><br/>
 *)

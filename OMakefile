@@ -61,7 +61,6 @@ SHARED[]=
     distthresh
     match
     pattern_escape
-    xLexer
     xParser
     query
     cachedQuery

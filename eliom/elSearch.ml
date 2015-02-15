@@ -57,7 +57,7 @@ let status groups results search_time group_time cache_hit_status qs =
                                               ]
                                           ]
                      ; div ~a: [ a_id id; a_style "display:none;" ]
-                         [ div [ !$ !% "%0.4f secs (%0.4f secs for search, %0.4f secs for grouping)" (search_time +. group_time) search_time group_time ]
+                         [ div [ !$ (!% "%0.4f secs (%0.4f secs for search, %0.4f secs for grouping)" (search_time +. group_time) search_time group_time) ]
                          ; div 
                              [ !$ (match cache_hit_status with
                                  | `Ok true -> "cache hit"

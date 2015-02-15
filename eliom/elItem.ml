@@ -326,7 +326,7 @@ let entry_group dist (is : is) =
           ; !$ (if ents = 1 then "1 entry" else !% "%d entries" ents) 
           ]
       ; !$ " "
-      ; span_class "distance" [ !$ !% "distance: %d" dist ]
+      ; span_class "distance" [ !$ (!% "distance: %d" dist) ]
       ]
   ; div ~a: [ a_id id; a_style "display:none;" ] & List.map entry_group_body_per_package xs 
   ]

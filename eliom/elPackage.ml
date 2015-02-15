@@ -35,7 +35,7 @@ let ambiguous name =
 
 let package search_time group_time pack mpaths =
   let opam = 
-    let top_ocamlfind_name = <:s<\..*/>> pack.OCP.name in
+    let top_ocamlfind_name = {s|\..*/|s} pack.OCP.name in
     ~~ List.find_map_opt ElLoad.db.Load.PooledDB.ocamlfind_opam_table ~f:(fun (p, opam) ->
       if p.OCP.name = top_ocamlfind_name then Some opam
       else None)

@@ -27,9 +27,9 @@ let oco_head =
               ] ()
        (* <link rel="shortcut icon" href="/favicon.ico" /> *)
     ; script ( cdata_script
-"function toggleDisplay(id) {
-   var obj=document.all && document.all(id) || document.getElementById && document.getElementById(id);
-   if(obj && obj.style) obj.style.display = \"none\" == obj.style.display ? \"\" : \"none\";
+"function toggleDisplay(id) { \
+   var obj=document.all && document.all(id) || document.getElementById && document.getElementById(id); \
+   if(obj && obj.style) obj.style.display = \"none\" == obj.style.display ? \"\" : \"none\"; \
 }" )
     ]
     

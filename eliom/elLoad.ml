@@ -14,5 +14,5 @@ let () =
       Source.scan [ d; opam_build_dir ];
       !!% "Scanned local source files.@."
 
-let db = Load.PooledDB.poolize & Load.load_items ()
+let db = Load.PooledDB.create & Load.load_items ()
 

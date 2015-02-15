@@ -1,7 +1,7 @@
-OCAMLINCLUDES = $(dir .. . type_conv) # This fixes dependency analysis nicely!
+OCAMLINCLUDES = $(dir .. .) # This fixes dependency analysis nicely!
 
-OCAMLDEPFLAGS= -syntax camlp4o -package orakuda.syntax,lwt.syntax
-OCAMLPPFLAGS = -syntax camlp4o -package orakuda.syntax,lwt.syntax
+OCAMLDEPFLAGS= -package ppx_meta_conv,ppx_orakuda,ppx_test,ppx_monadic 
+OCAMLPPFLAGS = -package ppx_meta_conv,ppx_orakuda,ppx_test,ppx_monadic
 
 NO_INSTALL=true
 
@@ -15,7 +15,7 @@ OCAMLPACKS+= eliom.server
 
 ELIOM_FILES[]=
     ocHttp
-    type_conv/elConfig
+    elConfig
     elLoad
     elServices
     elMisc

@@ -1,3 +1,0 @@
-OCAMLDEPFLAGS += -syntax camlp4o -package orakuda.syntax,lwt.syntax,meta_conv.syntax
-OCAMLPPFLAGS  += -syntax camlp4o -package orakuda.syntax,lwt.syntax,meta_conv.syntax
-

@@ -1,6 +1,7 @@
-(* OMAKE_SYNTAX(-syntax camlp4o -package orakuda.syntax,lwt.syntax,meta_conv.syntax) *)
 open Spotlib.Spot
+open Meta_conv.Open
 
+(*
 module SimpleXML = Simplexmlparser
 
 module Xml = struct
@@ -18,19 +19,23 @@ module Xml_conv = Xml_conv.Make(Xml)
 
 open Meta_conv.Open
 open Xml_conv
-
+*)
+  
 type t = {
 (*
   ping_path : string;
   self_ping_host : string mc_option; (** Where to ping ex. "http://xxx" *)
 *)
   ocamlc_source_dir : string mc_option;
-} with conv(xml)
+} [@@deriving conv{ocaml}]
 
 let default = {
   ocamlc_source_dir = None;
 }
 
+let config = List.hd & from_Ok & Ocaml.load_with t_of_ocaml "oco_conf.ml" 
+  
+(*
 let xls = Eliom_config.get_config ()
 
 let config = match List.map t_of_xml xls with
@@ -38,3 +43,5 @@ let config = match List.map t_of_xml xls with
   | [`Ok t] -> t
   | [`Error e] -> !!% "%a@." (Meta_conv.Error.format Xml.format) e; assert false
   | _ -> failwithf "Multiple OCO config records found"
+*)
+
