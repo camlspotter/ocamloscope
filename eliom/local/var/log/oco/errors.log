@@ -1,20 +1,79 @@
-Aug 24 05:18:48: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Failure("You need ocamlc_source_dir in your oco.conf")
-Aug 24 05:19:02: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Failure("You need ocamlc_source_dir in your oco.conf")
-Aug 24 05:21:27: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: File "elConfig.ml", line 39, characters 68-74: Assertion failed
-Aug 24 05:22:05: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: File "elConfig.ml", line 39, characters 68-74: Assertion failed
-Aug 24 05:22:52: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Unix.Unix_error(Unix.EINTR, "select", "")
-Aug 24 05:35:20: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Unix.Unix_error(Unix.EINTR, "select", "")
-Aug 24 11:16:37: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Unix.Unix_error(Unix.EINTR, "select", "")
-Aug 24 11:19:16: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Unix.Unix_error(Unix.EINTR, "select", "")
-Aug 24 11:21:03: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Invalid_argument("String.sub")
-Aug 24 11:29:59: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Failure("You need ocamlc_source_dir")
-Aug 24 11:30:04: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Invalid_argument("String.sub")
-Aug 24 11:31:01: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cmxs: Invalid_argument("String.sub")
-Dec  3 03:44:52: main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-dbm not found: maybe you forgot <findlib path="..."/>?
-Dec  3 03:45:06: main: Fatal - Findlib package ocsigenserver.ext.ocsipersist-dbm not found: maybe you forgot <findlib path="..."/>?
-Dec  3 03:49:16: main: Fatal - While loading /Users/jun/.opam/4.01.0/lib/ocaml/compiler-libs/ocamlcommon.cmxs: cannot find file /Users/jun/.opam/4.01.0/lib/ocaml/compiler-libs/ocamlcommon.cmxs in search path
-Dec  3 03:49:36: main: Fatal - While loading /Users/jun/.opam/4.01.0/lib/oUnit/oUnit.cmxs: no implementation available for OUnit2
-Dec  3 03:50:06: main: Fatal - Findlib package tiny_json_conv not found: maybe you forgot <findlib path="..."/>?
-Dec  3 03:50:34: main: Fatal - While loading /Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cmxs: cannot find file /Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cmxs in search path
-Dec  4 21:34:38: main: Fatal - While loading /Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cmxs: cannot find file /Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cmxs in search path
-Dec  4 21:35:09: main: Fatal - While loading /Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cmxs: cannot find file /Users/jun/.share/prefix/lib/ocaml/ocamldoc/odoc_info.cmxs in search path
+Feb 15 17:02:19: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cma: Result.Error
+Feb 15 17:03:09: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cma: Result.Error
+Feb 15 17:03:46: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cma: Unix.Unix_error(Unix.EINTR, "select", "")
+Feb 15 17:04:15: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_terminfo_backup
+Feb 15 17:04:15: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 17:04:15: main:   Expected in: flat namespace
+Feb 15 17:04:15: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 17:04:36: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cma: Unix.Unix_error(Unix.EINTR, "select", "")
+Feb 15 17:04:38: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cma: Unix.Unix_error(Unix.EINTR, "select", "")
+Feb 15 17:04:39: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cma: Unix.Unix_error(Unix.EINTR, "select", "")
+Feb 15 17:04:40: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cma: Unix.Unix_error(Unix.EINTR, "select", "")
+Feb 15 17:10:02: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_terminfo_backup
+Feb 15 17:10:02: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 17:10:02: main:   Expected in: flat namespace
+Feb 15 17:10:02: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 17:10:17: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cma: Unix.Unix_error(Unix.EINTR, "select", "")
+Feb 15 17:10:24: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cma: Unix.Unix_error(Unix.EINTR, "select", "")
+Feb 15 22:39:28: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_terminfo_backup
+Feb 15 22:39:28: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 22:39:28: main:   Expected in: flat namespace
+Feb 15 22:39:28: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:13:43: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_terminfo_backup
+Feb 15 23:13:43: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:13:43: main:   Expected in: flat namespace
+Feb 15 23:13:43: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:13:56: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_terminfo_backup
+Feb 15 23:13:56: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:13:56: main:   Expected in: flat namespace
+Feb 15 23:13:56: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:14:25: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/ocamldoc/odoc_info.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/ocamldoc/odoc_info.cmxs, 138): Symbol not found: _camlBtype
+Feb 15 23:14:25: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/ocamldoc/odoc_info.cmxs
+Feb 15 23:14:25: main:   Expected in: flat namespace
+Feb 15 23:14:25: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/ocamldoc/odoc_info.cmxs
+Feb 15 23:14:47: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ../oco.cmxs: error loading shared library: dlopen(../oco.cmxs, 138): Symbol not found: _camlAst_helper
+Feb 15 23:14:47: main:   Referenced from: ../oco.cmxs
+Feb 15 23:14:47: main:   Expected in: flat namespace
+Feb 15 23:14:47: main:  in ../oco.cmxs
+Feb 15 23:14:58: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_terminfo_backup
+Feb 15 23:14:58: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:14:58: main:   Expected in: flat namespace
+Feb 15 23:14:58: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:18:22: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_builtin_cprim
+Feb 15 23:18:22: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:18:22: main:   Expected in: flat namespace
+Feb 15 23:18:22: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:20:56: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_builtin_cprim
+Feb 15 23:20:56: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:20:56: main:   Expected in: flat namespace
+Feb 15 23:20:56: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:21:14: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_builtin_cprim
+Feb 15 23:21:14: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:21:14: main:   Expected in: flat namespace
+Feb 15 23:21:14: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:21:31: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_builtin_cprim
+Feb 15 23:21:31: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:21:31: main:   Expected in: flat namespace
+Feb 15 23:21:31: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:21:44: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_builtin_cprim
+Feb 15 23:21:44: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:21:44: main:   Expected in: flat namespace
+Feb 15 23:21:44: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:22:06: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_terminfo_backup
+Feb 15 23:22:06: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:22:06: main:   Expected in: flat namespace
+Feb 15 23:22:06: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:25:31: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ../oco.cma: error while linking ../oco.cma.
+Feb 15 23:25:31: main: Reference to undefined global `Spotlib'
+Feb 15 23:25:43: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_builtin_cprim
+Feb 15 23:25:43: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:25:43: main:   Expected in: flat namespace
+Feb 15 23:25:43: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:28:35: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _tgetent
+Feb 15 23:28:35: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 15 23:28:35: main:   Expected in: flat namespace
+Feb 15 23:28:35: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+Feb 16 00:25:39: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ../oco.cmxs: error loading shared library: dlopen(../oco.cmxs, 138): Symbol not found: _camlLevenshtein
+Feb 16 00:25:39: main:   Referenced from: ../oco.cmxs
+Feb 16 00:25:39: main:   Expected in: flat namespace
+Feb 16 00:25:39: main:  in ../oco.cmxs

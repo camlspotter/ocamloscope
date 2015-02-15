@@ -33,7 +33,10 @@ let default = {
   ocamlc_source_dir = None;
 }
 
-let config = List.hd & from_Ok & Ocaml.load_with t_of_ocaml "oco_conf.ml" 
+let config =
+  try List.hd & from_Ok & Ocaml.load_with t_of_ocaml "oco_conf.ml"
+  with
+    | e -> prerr_endline "config load failed"; raise e
   
 (*
 let xls = Eliom_config.get_config ()

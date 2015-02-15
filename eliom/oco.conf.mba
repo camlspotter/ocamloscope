@@ -9,33 +9,26 @@
     
     <commandpipe>local/var/run/oco-cmd</commandpipe>
     <extension findlib-package="ocsigenserver.ext.staticmod"/>
-<!--
     <extension findlib-package="ocsigenserver.ext.ocsipersist-sqlite"/>
--->
+<!--
     <extension findlib-package="ocsigenserver.ext.ocsipersist-dbm"/>
+-->
     <extension findlib-package="eliom.server"/>
     <extension findlib-package="compiler-libs.common"/>
     <extension findlib-package="spotlib"/>
     <extension findlib-package="findlib"/>
     <extension findlib-package="treeprint"/>
-    <extension findlib-package="orakuda"/>
-    <extension findlib-package="tiny_json_conv"/>
-    <extension findlib-package="xml_conv"/>
+    <extension findlib-package="ppx_orakuda"/>
+    <extension findlib-package="ppx_meta_conv"/>
     <extension findlib-package="levenshtein"/>
     <!-- ocamldoc has no META -->
-    <extension module="/Users/jun/.opam/4.01.0/lib/ocaml/ocamldoc/odoc_info.cma"/>
-    
-    <!-- <host defaulthostname="localhost" hostfilter="localhost"> -->
-    <host>
+	<extension module="/Users/jun/.opam/4.02.1/lib/ocaml/ocamldoc/odoc_info.cma"/>
+    <host hostfilter="*">
       <static dir="static" />
       <static dir="local/var/www/oco/eliom" />
       <eliommodule module="../oco.cma" />
-      <eliommodule module="ocoeliom.cma">
-	<record>
-	   <ocamlc_source_dir>/Users/jun/.share/projects/ocaml-github</ocamlc_source_dir>
-	</record>
-      </eliommodule>
-      <eliom/>
+      <eliommodule module="ocoeliom.cma" />
+      <eliom/> <!-- dont know why but we need this -->
     </host>
   </server>
 </ocsigen>

@@ -11,7 +11,6 @@ module Search = struct
     ~get_params:param 
     ()
 
-  let a = a ~service
 end
 
 module Packages = struct
@@ -21,6 +20,7 @@ module Packages = struct
     ()
 
   let a = a ~service
+
 end
 
 module Package = struct

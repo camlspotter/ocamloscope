@@ -13,7 +13,8 @@ do
   echo starting ocsigenserver
   echo '=======================' >> local/var/log/oco/std.log
   echo starting ocsigenserver >> local/var/log/oco/std.log
-  nohup ocsigenserver.opt -c oco.conf 2>&1 >> local/var/log/oco/std.log
+#  nohup ocsigenserver.opt -c oco.conf 2>&1 >> local/var/log/oco/std.log
+  nohup ocsigenserver -c oco.conf 2>&1 >> local/var/log/oco/std.log
   echo ocsigenserver exited
   sleep 10
 done
