@@ -27,13 +27,26 @@ Some of the above packages lack `cmxs` files and you have to build them manually
 
 ### `ocamlcommon.cmxs` is missing in OCaml 4.02.1.
 
-This is really tricky, since `ocamlcommon.cmxa` depends on `prims.o` and `libocamlrun.a` (and `-lcurses` if curses is linked) but their info is not inside `cmxa`.
+This is really tricky, since `ocamlcommon.cmxa` depends on `prims.o` and `libocamlrun.a` (and `-lcurses` if curses is linked) but their info is not inside `cmxa`:
+
+First, create `ocamlcommon2.cmxa` as follows, `ocamlcommon.cmxa` with prims.o, libcamlrun.a and -lcurses:
+
+```shell
+$ cd ~/.opam/4.02.1/build/ocaml
+$ boot/ocamlrun ./ocamlopt -nostdlib -I stdlib -I otherlibs/dynlink -a -linkall -o compilerlibs/ocamlcommon2.cmxa byterun/prims.o byterun/libcamlrun.a -ccopt -lcurses utils/misc.cmx utils/tbl.cmx utils/config.cmx utils/clflags.cmx utils/terminfo.cmx utils/ccomp.cmx utils/warnings.cmx utils/consistbl.cmx parsing/location.cmx parsing/longident.cmx parsing/ast_helper.cmx parsing/syntaxerr.cmx parsing/parser.cmx parsing/lexer.cmx parsing/parse.cmx parsing/printast.cmx parsing/pprintast.cmx parsing/ast_mapper.cmx typing/ident.cmx typing/path.cmx typing/primitive.cmx typing/types.cmx typing/btype.cmx typing/oprint.cmx typing/subst.cmx typing/predef.cmx typing/datarepr.cmx typing/cmi_format.cmx typing/env.cmx typing/typedtree.cmx typing/printtyped.cmx typing/ctype.cmx typing/printtyp.cmx typing/includeclass.cmx typing/mtype.cmx typing/envaux.cmx typing/includecore.cmx typing/typedtreeIter.cmx typing/typedtreeMap.cmx typing/cmt_format.cmx typing/includemod.cmx typing/typetexp.cmx typing/parmatch.cmx typing/stypes.cmx typing/typecore.cmx typing/typedecl.cmx typing/typeclass.cmx typing/typemod.cmx bytecomp/lambda.cmx bytecomp/printlambda.cmx bytecomp/typeopt.cmx bytecomp/switch.cmx bytecomp/matching.cmx bytecomp/translobj.cmx bytecomp/translcore.cmx bytecomp/translclass.cmx bytecomp/translmod.cmx bytecomp/simplif.cmx bytecomp/runtimedef.cmx driver/pparse.cmx driver/main_args.cmx driver/compenv.cmx driver/compmisc.cmx
+```
+
+Then, create `ocamlcommon.cmxs` from `ocamlcommon2.cmxa`:
+
+```shell
+$ ocamlopt -linkall -shared compilerlibs/ocamlcommon2.cmxa -o ~/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
+```
 
 ### `odoc_info.cmxs` is missing in OCaml 4.02.1.
 
 The following command should create `odoc_info.cmxs`:
 
-```
+```shell
 $ ocamlopt -linkall -shared ocamldoc/odoc_info.cmxa -o ocamldoc/odoc_info.cmxs
 ```
 
