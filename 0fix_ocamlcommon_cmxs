@@ -3,5 +3,6 @@
 DIR=`ocamlc -where`
 
 cd $DIR
+# This does not work...
 ocamlopt -linkall -shared compiler-libs/ocamlcommon.cmxa -o compiler-libs/ocamlcommon.cmxs
 ocamlopt -linkall -shared ocamldoc/odoc_info.cmxa -o ocamldoc/odoc_info.cmxs

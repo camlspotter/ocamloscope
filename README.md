@@ -4,29 +4,31 @@ Installation
 Required softwares
 ---------------------------
 
-* OCaml 4.01.0 (Code is highly dependent on the specific compiler version. Do not try compiling with other versions.)
-* OPAM, findlib and OMake to build.
-* spotlib.2.4.1
-* meta_conv.1.1.4
-* orakuda.1.2.1
-* treeprint.1.0.3
-* levenshtein.1.0.0
-* pa_ounit.109.53.02
-* ounit.2.0.0
-* eliom.3.0.3
+* OCaml 4.02.1 (Code is highly dependent on the specific compiler version. Do not try compiling with other versions.)
+* OPAM.1.2.0, findlib and OMake to build.
+* spotlib.2.5.2
+* ppx_meta_conv.2.0.0
+* ppx_orakuda.2.0.0 (OPAM name is orakuda.2.0.0)
+* treeprint.2.0.0
+* levenshtein.1.1.0
+* ppx_test.1.1.0
+* ocsigenserver.2.5
+* eliom.4.1.0
 
 These packages should be available from OPAM. Windows is not supported.
 
 OPAM package for OCamlOScope is not yet available... since it requires the following mending of external softwares.
 
-
 Missing `cmxs` files
 ---------------------------
 
-Some of the above packages lack `cmxs` files and you have to build them manually:
+Some of the above packages lack `cmxs` files and you have to build them manually to run OCamlOScope on Ocsigen:
 
-* `ocamlcommon.cmxs` and `odoc_info.cmxs` are missing in OCaml 4.01.0. You have to build them using `0fix_ocamlcommon.cmxs`.
-* `ounit.cmxs` of OUnit 2.0.0 misses `oUnit2.cmx`. You have to fix it using `0fix_ounit_cmxs`
+* `ocamlcommon.cmxs` is missing in OCaml 4.02.1.
+
+  This is really tricky, since `ocamlcommon.cmxa` depends on `prims.o` and `libocamlrun.a` (and `-lcurses` if curses is linked) but their info is not inside `cmxa`.
+
+* `odoc_info.cmxs` is missing in OCaml 4.02.1.
 
 How to build
 ---------------------------
@@ -42,7 +44,6 @@ What does scraping need:
 
 * `cmt` files. OCaml modules must be compiled with `OCAMLPARAM=_,bin-annot=1`, and the compiled source tree with `cmt` files must be kept.
 * For softwares installed by OPAM, `OPAMKEEPBUILDDIR=yes` is required to keep ths source files
-* OPAM 1.1.0 has a bug and cannot keep the compiler source even with `OPAMKEEPBUILDDIR=yes`.
 
 The following command should scrape the OCaml compiler source code and all the installed OCamlFind libraries and their corresponding OPAM build directorires, and stores the result under `data/` directory.
 
