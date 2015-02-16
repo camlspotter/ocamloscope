@@ -15,7 +15,8 @@ Required softwares
 * ocsigenserver.2.5
 * eliom.4.1.0
 
-These packages should be available from OPAM. Windows is not supported.
+These packages should be available soon in the OPAM repository. 
+Windows is not supported.
 
 OPAM package for OCamlOScope is not yet available... since it requires the following mending of external softwares.
 
@@ -24,16 +25,23 @@ Missing `cmxs` files
 
 Some of the above packages lack `cmxs` files and you have to build them manually to run OCamlOScope on Ocsigen:
 
-* `ocamlcommon.cmxs` is missing in OCaml 4.02.1.
+### `ocamlcommon.cmxs` is missing in OCaml 4.02.1.
 
-  This is really tricky, since `ocamlcommon.cmxa` depends on `prims.o` and `libocamlrun.a` (and `-lcurses` if curses is linked) but their info is not inside `cmxa`.
+This is really tricky, since `ocamlcommon.cmxa` depends on `prims.o` and `libocamlrun.a` (and `-lcurses` if curses is linked) but their info is not inside `cmxa`.
 
-* `odoc_info.cmxs` is missing in OCaml 4.02.1.
+### `odoc_info.cmxs` is missing in OCaml 4.02.1.
+
+The following command should create `odoc_info.cmxs`:
+
+```
+$ ocamlopt -linkall -shared ocamldoc/odoc_info.cmxa -o ocamldoc/odoc_info.cmxs
+```
 
 How to build
 ---------------------------
 
 ```shell
+$ cp OMakeroot.in OMakeroot
 $ omake
 ```
 
