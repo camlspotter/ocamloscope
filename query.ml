@@ -10,12 +10,14 @@ module Query = struct
         path  : Spath.t option;
         type_ : Stype.t option;
         dist0 : bool;
+        package : Packageq.t list;
       }
 
   let to_string { kind= k;
                   path= popt;
                   type_= tyopt;
                   dist0;
+                  package;
                 } =
     begin if dist0 then "exact " else "" end
     ^
@@ -30,7 +32,12 @@ module Query = struct
     begin match tyopt with
     | None -> "_"
     | Some ty -> Stype.to_string ty
-    end
+    end ^
+    begin match package with
+    | [] -> ""
+    | ts -> " " ^ String.concat " " (map Packageq.to_string ts)
+    end    
+      
 
   module Parse = struct
     (* CR jfuruse: it does not parse _, M._ or M._.x *)
@@ -43,7 +50,7 @@ module Query = struct
             |> XParser.longident Lexer.token
             |> Spath.of_longident
           in 
-          Some { kind = None; path= Some sitem; type_= None; dist0= false; }
+          Some { kind = None; path= Some sitem; type_= None; dist0= false; package= [] }
         with
         | _ -> (* !!% "failed to parse as a path %S@." str; *) None
       in
@@ -53,7 +60,7 @@ module Query = struct
     let type_ s = 
       let open Option in
       Util.Result.to_option (Stype_print.read s) >>= fun ty ->
-      return { kind = None; path = None; type_= Some ty; dist0= false; }
+      return { kind = None; path = None; type_= Some ty; dist0= false; package= [] }
   
     let path_type str =
       try
@@ -65,7 +72,7 @@ module Query = struct
         match p, t with
         | None, _ | _, None -> None
         | Some p, Some t ->
-            Some { kind= None; path= p.path; type_= t.type_; dist0= false; }
+            Some { kind= None; path= p.path; type_= t.type_; dist0= false; package= [] }
   (*
         | Some {path = Some Lident ("_" | "_*_")}, 
           Some {type_ = Some { ptyp_desc= Ptyp_any }} -> 
@@ -75,23 +82,23 @@ module Query = struct
       | _ -> None
   
     let prefixed str =
-      let open Option.Open in
       try
+        Option.do_;
         (* CR jfuruse: parsing of kind is very ugly *)
-        (str =~ {m|(class|class\s+val|class\s+type|constr|exception|field|method|module|module\s+type|type|val|package)\s+|m}) >>= fun res ->
-        Kindkey.of_string res#_1 >>= fun k ->
-        path res#_right >>= fun p ->
-        return { kind=Some k; path=p.path; type_= None; dist0= false; }
+        res <-- (str =~ {m|(class|class\s+val|class\s+type|constr|exception|field|method|module|module\s+type|type|val|package)\s+|m});
+        k <-- Kindkey.of_string res#_1;
+        p <-- path res#_right;
+        return { kind=Some k; path=p.path; type_= None; dist0= false; package= []}
       with
       | _ -> None
   
     let prefixed_and_type str =
-      let open Option.Open in
       try
+        Option.do_;
         (* CR jfuruse: parsing of kind is very ugly *)
-        (str =~ {m|(class\s+val|constr|exception|field|method|val)\s+|m}) >>= fun res ->
-        Kindkey.of_string res#_1 >>= fun k -> 
-        path_type res#_right >>= fun res ->
+        res <-- (str =~ {m|(class\s+val|constr|exception|field|method|val)\s+|m});
+        k <-- Kindkey.of_string res#_1;
+        res <-- path_type res#_right;
         return { res with kind = Some k }
       with
       | _ -> None
@@ -101,11 +108,12 @@ module Query = struct
       match s with
       | "" -> None
       | _ ->
+          let package, s = Packageq.parse_query s in
           let exact, s =
             if s.[0] = '!' then true, String.drop 1 s
             else false, s
           in
-          let wrap q = { q with dist0 = exact } in
+          let wrap q = { q with dist0 = exact; package } in
           Some (map wrap & filter_map id
                   [ path_type s ; path s ; type_ s; prefixed s; prefixed_and_type s ])
   
@@ -291,7 +299,7 @@ let group_results =
 
 module Types = Hashtbl.Make(Stype_hcons.HashedType)
 
-let query db qs0 = 
+let query db qs0 =
   let module M = struct
     module Match = Match.MakePooled(struct
       let cache = Levenshtein.StringWithHashtbl.create_cache 1023
@@ -308,24 +316,28 @@ let query db qs0 =
           if not & Types.mem caches ty then
             let cache = Array.init (Array.length db.Load.PooledDB.types) (fun _ -> `NotFoundWith (-1)) in
             Types.add caches ty cache);
-      flip map qs0 (fun q ->
-        q, flip Option.map q.type_ & fun ty -> 
-          let cache = Types.find caches ty in 
-          let module Match = Match.WithType(struct let pattern = ty let cache = cache end) in
-          Match.match_type,
-          Match.match_path_type)
+      flip map qs0 & fun q ->
+        (q,
+         Packageq.compile q.package,
+         flip Option.map q.type_ & fun ty -> 
+           let cache = Types.find caches ty in 
+           let module Match = Match.WithType(struct let pattern = ty let cache = cache end) in
+           Match.match_type,
+           Match.match_path_type
+        )
       
-    let query_item max_dist ({kind= k_opt; path= lident_opt; dist0 }, matches_with_type) i = 
+    let query_item max_dist ({kind= k_opt; path= lident_opt; dist0 }, packmatch, matches_with_type) i =
       let max_dist = if dist0 then 0 else max_dist in
       match k_opt, i.Item.kind with
       (* Items without types *)
-      | (None | Some `Class), Item.Class 
-      | (None | Some `ClassType), ClassType
-      | (None | Some `ModType), ModType
-      | (None | Some `Module), Module
-      | (None | Some `Type), Type (_, None, _)
-      | (None | Some `Package), Package _ ->
-          begin match lident_opt, matches_with_type with
+      | (None | Some `Class)     , Item.Class 
+      | (None | Some `ClassType) , ClassType
+      | (None | Some `ModType)   , ModType
+      | (None | Some `Module)    , Module
+      | (None | Some `Type)      , Type (_, None, _)
+      | (None | Some `Package)   , Package _ ->
+          if not & packmatch i.packs then None
+          else begin match lident_opt, matches_with_type with
           | None, None -> Some (10, `Nope)
           | Some lid, None -> 
               Option.map (fun (s, d) -> (s, `Path d)) 
@@ -339,7 +351,8 @@ let query db qs0 =
       | (None | Some `Field     ) , Field typ
       | (None | Some `Method    ) , Method (_, _, typ)
       | (None | Some `Value     ) , Value typ ->
-          begin match lident_opt, matches_with_type with
+          if not & packmatch i.packs then None
+          else begin match lident_opt, matches_with_type with
           | None, None -> Some (10, `Nope)
           | Some lid, None -> 
               Option.map (fun (s, d) -> s, `Path d) 
@@ -351,6 +364,7 @@ let query db qs0 =
               Option.map (fun (s, ds) -> s, `PathType ds) 
               & match_path_type lid (i.path,typ) (min max_dist 10) max_dist
           end
+
       | _ -> None
             
     let query_item max_dist q i = 
@@ -456,6 +470,8 @@ let cli () =
 
   let module M = Tests.Do(struct let items = items end) in
 
+  OCamlFind.Packages.report ();
+  
   if Conf.show_stat then begin 
     Stat.report items; exit 0 
   end;

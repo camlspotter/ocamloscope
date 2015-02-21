@@ -4,6 +4,7 @@ module Query : sig
     path  : Spath.t option;
     type_ : Stype.t option;
     dist0 : bool; (** true then search only distance=0 *)
+    package : Packageq.t list;
   }
 
   val to_string : t -> string
