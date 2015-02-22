@@ -372,6 +372,13 @@ module Packages = struct
 
   let report () =
     !!% "Current OCamlFind package sets: %d@." & Hashtbl.length tbl
+    (* CR jfuruse: When oco.bin already exists, it prints 2.
+       It is strange but ok, since packages are with well-defined id numbers
+       in oco.bin. 
+
+       It will affect the size of the cache of [cached_match], which
+       is not pretty good therefore should be fixed.
+    *)
 
   let match_ s t =
     List.exists (fun p ->
@@ -382,7 +389,7 @@ module Packages = struct
          | Some s -> String.unsafe_get s 0 = '.') t.packages
 
   let cached_match s =
-    let cache = Hashtbl.create (Hashtbl.length tbl) in
+    let cache = Hashtbl.create (max 400 (Hashtbl.length tbl)) in
     fun t ->
       match Hashtbl.find cache t.id with
       | x -> x
