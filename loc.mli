@@ -12,4 +12,4 @@ val format : Format.formatter -> t -> unit
 
 val rec_hcons : t -> t
 
-val id : t -> (string * string * int) option
+val id : t -> (string * string (** md5 in hex *) * int) option

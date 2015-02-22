@@ -54,25 +54,19 @@ let numbered ~highlight = function
              [ code (code_to_pcdata l) ]) xs 
          ]
   
-let () =
-    Eliom_registration.Html5.register
-      ~service & fun (path, (digest, line)) () ->
-        Lwt.return 
-        & html
-          oco_head
-        & body
-        & 
-          match Result.catch_exn & fun () -> Digest.from_hex digest with
-          | `Error _ -> 
-              [ !$% "Invalid digest hex: %s" digest ]
-          | `Ok dhex ->
-              match Source.find (Filename.basename path) ~digest:dhex with
-              | None ->
-                  [ !$% "File %s with digest=%s does not exist locally" path digest ]
-              | Some p ->
-                  match File.to_lines p with
-                  | `Error (`Exn e) ->
-                      [ !$% "File %s with digest=%s line=%d found at %s but displaying it raised an exception %s" path digest line p (Exn.to_string e)]
-                  | `Ok ls -> 
-                      let tr = numbered ~highlight:line ls in
-                      [ table [tr] ]
+let () = Eliom_registration.Html5.register ~service
+  & fun (path, (digest, line)) () ->
+    Lwt.return & html oco_head & body & 
+      match Digest.from_hex digest with
+      | exception _ -> [ !$% "Invalid digest hex: %s" digest ]
+      | dhex ->
+          match Source.find (Filename.basename path) ~digest:dhex with
+          | None ->
+              [ !$% "File %s with digest=%s does not exist locally" path digest ]
+          | Some p ->
+              match File.to_lines p with
+              | `Error (`Exn e) ->
+                  [ !$% "File %s with digest=%s line=%d found at %s but displaying it raised an exception %s" path digest line p (Exn.to_string e)]
+              | `Ok ls -> 
+                  let tr = numbered ~highlight:line ls in
+                  [ table [tr] ]

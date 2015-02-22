@@ -7,7 +7,7 @@ Required softwares
 * OCaml 4.02.1 (Code is highly dependent on the specific compiler version. Do not try compiling with other versions.)
 * OPAM.1.2.0, findlib and OMake to build.
 * spotlib.2.5.2
-* ppx_meta_conv.2.0.0
+* ppx_meta_conv.2.0.1
 * ppx_orakuda.2.0.0 (OPAM name is orakuda.2.0.0)
 * treeprint.2.0.0
 * levenshtein.1.1.0
