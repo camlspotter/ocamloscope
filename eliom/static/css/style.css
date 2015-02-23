@@ -274,16 +274,33 @@ span.high {
    font-weight: bold;
 }
 
-.source-line {
+.srclnum {
+    font-family: monospace;
     color: #888888;
-    padding-right: 10px;
+    padding: 0px;
+    magin-right: 10px;
 }
 
-.source-highlight {
+code {
+    margin: 0px;
+    padding: 0px;
+    font-family: monospace;
+    white-space: pre;
+    display: block;
+}
+
+.srclnum:nth-child(odd)  { background: #f8f8ff; }
+.srclnum:nth-child(even) { background: #f0f8f0; }
+code.src:nth-child(odd)  { background: #f0f8f0; }
+code.src:nth-child(even) { background: #f8f8ff; }
+	     
+code.srchl {
     background-color: #FFDD00;
 }
 
 div.source-link {
     margin-left: 10px;
 }
- 
+
+
+    
