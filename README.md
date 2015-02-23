@@ -37,7 +37,7 @@ $ ocamlopt -linkall -shared compiler-libs/ocamlcommon.cmxa -o compiler-libs/ocam
 
 However, I find it stopped working in recent Mac OS X. It required the following fixes:
 
-* Build `ocamlcommon2.cmxa` just like as `ocamlcommn.cmxa` but link with `byterun/prims.o`, `byterun/libcamlrun.a` and `-ccopt -lcurses`.
+* Build `ocamlcommon2.cmxa` just like as `ocamlcommn.cmxa` but link with `byterun/prims.o`, `-lccopt byterun/libcamlrun_shared.so` and `-ccopt -lcurses`.
 * Then create `ocamlcommon.cmxs` from this `ocamlcommon2.cmxa`.
 
 It seems due to Clang and its use in OCaml compiler build, but I do not understand why it requires.

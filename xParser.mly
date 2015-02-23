@@ -2217,6 +2217,7 @@ ident2:
   | FALSE                                       { "false" }
   | TRUE                                        { "true" }
   | LPAREN operator RPAREN                      { $2 }
+  | LPAREN UNDERSCORE RPAREN                    { "(_)" }
 ;
 
 longident:
