@@ -105,8 +105,18 @@ end) = struct
     | _ -> 
         if n = m then return (limit, (m0, Some n0))
         else
-          let n = String.lowercase n
-          and m = String.lowercase m in
+          let fix s =
+            let len = String.length s in
+            let b = Buffer.create len in
+            for i = 0 to len-1 do
+              match String.unsafe_get s i with
+              | '_' -> ()
+              | c -> Buffer.add_char b & Char.lowercase c
+            done;
+            Buffer.contents b
+          in
+          let n = fix n
+          and m = fix m in
           let score = 
             if String.is_substring ~needle:n m then
               limit - (String.length m - String.length n)
