@@ -280,7 +280,7 @@ let find_packages modules =
             with
             | Not_found ->
                 (* the same cmi was not found in OCamlFind installation directory *)
-                !!% "Warning: No OCamlFind package (so inaccessible) for %s %s@." (Cmfile.CMIDigest.to_string md5) path;
+                !!% "Warning: No OCamlFind package (therefore inaccessible) for %s %s@." (Cmfile.CMIDigest.to_string md5) path;
                 None
           end
     with
