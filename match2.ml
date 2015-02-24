@@ -14,64 +14,73 @@ end) = struct
   let error = ref false
 
   module Make(A : sig
-    type limit
-    val minus : limit -> int -> limit option
+    type t (* distance *)
+    val zero : t
+    val plus : t -> t -> t
+    val minus : t -> t -> t option
+    val one_less : t -> t option
   end) = struct
 
-    type t = A.limit
+    open A
 
-    let with_penalty n f limit0 =
-      let open Option in do_;
-      limit <-- A.minus limit0 n;
+    let with_penalty n f limit0 = Option.do_;
+      limit <-- minus limit0 n;
       (dist, x) <-- f limit;
-      return (dist+n, x)
+      return (plus dist n, x)
 
     let (/||/) f1 f2 limit0 =
       match f1 limit0 with
       | None -> f2 limit0
-      | (Some (dist, x) as res) -> 
-          let open Option in do_;
-          limit <-- A.minus limit0 (dist + 1);
+      | (Some (dist, x) as res) -> Option.do_; 
+          limit <--minus limit0 dist;
+          limit <-- one_less limit;
           match f2 limit with
           | None -> res
           | res -> res
 
-    let (/&&/) f1 f2 limit0 =
-      match f1 limit0 with
-      | None -> None
-      | (Some (dist, x) as res) ->
-          let open Option in do_;
-          limit <-- A.minus limit0 dist;
-          match f2 limit with
-          | None -> None
-          | Some (dist',x') -> Some (dist+dist',(x,x'))
+    let (/&&/) f1 f2 limit0 = Option.do_;
+      [%p? (dist, x) as res] <-- f1 limit0;
+      limit <-- minus limit0 dist;
+      (dist',x') <-- f2 limit;
+      return (plus dist dist', (x,x'))
 
-    let (>>) g f = fun limit -> 
-      let open Option in do_;
+    let (>>) g f = fun limit -> Option.do_;
       (dist, x) <-- g limit;
       return (dist, f x)
 
     let fail _ = None
 
-    let return v = fun _ -> Some (0, v)
+    let return v = fun _ -> Some (zero, v)
   end
 
   module Int = Make(struct
-    type limit = int
+    type t = int
+    let zero = 0
+    let plus = (+)
     let minus limit n = 
       let x = limit - n in 
       if x < 0 then None else Some x
+    let one_less x = if x <= 0 then None else Some (x-1)
   end)
 
   module TypeLimit = struct
     module A  = struct
-      type limit = { score: int; 
-                     expansions: int;
-                   }
+      type t = { score: int; expansions: int; }
+
+      let zero = { score = 0; expansions = 0 }
+
+      let plus m n = { score      = m.score + n.score
+                     ; expansions = m.expansions + n.expansions }
+
+      let one_less m = 
+        if m.score <= 0 then None 
+        else Some { m with score = m.score - 1 }
 
       let minus limit n =
-        let score' = limit.score - n in
-        if score' < 0 then None else Some { limit with score= score' }
+        let score' = limit.score - n.score in
+        let expansions' = limit.expansions - n.expansions in
+        if score' < 0 || expansions' < 0 then None
+        else Some { score = score'; expansions = expansions' } 
 
       let create score = { score; expansions = 50 }
   (* Type alias expansion is limited to 50. CR jfuruse: make it configurable. *)
@@ -236,6 +245,7 @@ end) = struct
     let var_match_history = Hashtbl.create 107 in
 
     let rec match_type pattern target =
+      let open TypeLimit in
       (* pattern = tvar is treated specially since it always returns the maximum score w/o changing the pattern *)
       match pattern, target with
       | (Var _ | Univar _ | UnivarNamed _), _ -> assert false 
@@ -252,7 +262,7 @@ end) = struct
                  for one variable.
               *)
               Hashtbl.replace var_match_history s `Unmatched;
-              with_penalty 1 & return (Attr (`Ref pattern, target))
+              with_penalty { score= 1; expansions= 0 } & return (Attr (`Ref pattern, target))
           | Some `Unmatched -> 
               return (Attr (`Ref pattern, target))
           end
@@ -264,10 +274,10 @@ end) = struct
 
       | Any, _ -> 
           (* Any matches anything but with a slight penalty. No real unification. *)
-          with_penalty 1 & return (Attr (`Ref pattern, target))
+          with_penalty { score= 1; expansions= 0 } & return (Attr (`Ref pattern, target))
     
       | _, Link { contents = `Linked ty } -> 
-          with_penalty 1 & match_type pattern ty
+          with_penalty { score= 1; expansions= 0 } & match_type pattern ty
   
       | _, Link _ -> fail
       | _ ->
@@ -287,13 +297,16 @@ end) = struct
                 >> fun ds -> Attr (`Ref pattern, Tuple ds)
     
             | Constr ({dt_path=p1}, ts1), Constr (({dt_path=p2} as dt), ts2) -> 
-                let open Option in do_;
-                ((fun limit -> match_path p1 p2 limit.score)
+                let open Option in
+                ((fun limit -> Option.do_;
+                    (dist, pd0) <-- match_path p1 p2 limit.score;
+                    return ({score=dist; expansions=0}, pd0))
                  /&&/ match_types ts1 ts2 )
                 >> fun (pd,ds) -> Attr (`Ref pattern, Constr ({dt with dt_path= pd}, ds))
   
             | _, (Var _ | VarNamed _ | Univar _ | UnivarNamed _) ->
-                with_penalty 1000 & return (Attr (`Ref pattern ,target))
+                with_penalty { score=1000; expansions= 0 } 
+                & return (Attr (`Ref pattern ,target))
                 (* CR jfuruse: it is just fail?! *)
     
             | _ -> fail)
@@ -334,7 +347,7 @@ end) = struct
       match target with
       | Constr ( ({ dt_path=Spath.SPdot (Spath.SPpredef, "option") } as dt),
                  [t2]) ->
-          with_penalty 10 
+          with_penalty { score= 10; expansions= 0 } (* CR jfuruse: 10 is too big? *)
           & match_type pattern t2 
             >> fun d -> Constr (dt, [d])
       | _ -> fail
@@ -396,18 +409,16 @@ end) = struct
             else pats, map (fun x -> (x, true)) targets, 0
           in
 
-          with_penalty penalty & 
+          with_penalty { score= penalty; expansions = 0 } & 
           (* O(n^2) *)
           let targets_array = Array.of_list (map fst targets) in
           let score_table =
             (* I believe laziness does not help here *)
             map (fun pat ->
-              Array.map (fun target ->
-                match match_type pat target limit with
-                | None -> None
-                | Some (limit', x) -> Some (limit.score - limit'.score, x)
-                    (* CR jfuruse: we discard expansion info... *)
-              ) targets_array) pats
+              Array.map 
+                (fun target -> match_type pat target limit)
+                targets_array
+            ) pats
           in
     
           (* I've got [GtkEnums._get_tables : unit -> t1 * .. * t70].
