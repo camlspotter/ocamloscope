@@ -374,7 +374,8 @@ end) = struct
       match pats, targets with
       | [], [] -> return []
       | [pat], [target] ->  match_type pat target >> fun d -> [d]
-      | _ ->
+      | _ -> fun limit ->
+
           let len_pats = length pats in
           let len_targets = length targets in
     
@@ -409,25 +410,26 @@ end) = struct
             else pats, map (fun x -> (x, true)) targets, 0
           in
 
-          with_penalty { score= penalty; expansions = 0 } & 
-          (* O(n^2) *)
-          let targets_array = Array.of_list (map fst targets) in
-          let score_table =
-            (* I believe laziness does not help here *)
-            map (fun pat ->
-              Array.map 
-                (fun target -> match_type pat target limit)
-                targets_array
-            ) pats
-          in
-    
-          (* I've got [GtkEnums._get_tables : unit -> t1 * .. * t70].
+          (* redefine limit with the penalty *)
+          Option.do_;
+          limit <-- minus limit { score= penalty; expansions = 0 };
+
+          (* If we do things naively, it is O(n^2).
+             I've got [GtkEnums._get_tables : unit -> t1 * .. * t70].
              Its permutation is ... huge: 1.19e+100.
            *)
     
-          let rec perm_max target_pos xs = match xs with
+          let targets_array = Array.of_list (map fst targets) in
+          let score_table =
+            (* I believe laziness does not help here *)
+            flip map pats & fun pat ->
+              flip Array.map targets_array & fun target -> 
+                match_type pat target limit
+          in
+    
+          let rec perm_max limit target_pos xs = match xs with
             | [] -> return []
-            | xs ->
+            | _ ->
                 (* [choose [] xs = [ (x, xs - x) | x <- xs ] *)
                 let rec choose sx = function
                   | [] -> assert false
@@ -439,8 +441,8 @@ end) = struct
                 let matches =
                   filter_map (fun (x,xs) ->
                     match Array.unsafe_get x target_pos with
-                    | None -> (* too much cost *) fail
-                    | Some (score,d) ->
+                    | None -> (* too much cost *) None
+                    | Some (dist, d) ->
                         (* CR jfuruse: bug: We ignore the changes of expansions here *)
                         (with_penalty score 
                         & perm_max (target_pos+1) xs)
