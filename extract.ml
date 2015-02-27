@@ -21,7 +21,7 @@ module P = Printtyp
 
 type t = { 
   path  : Path.t;
-  loc   : Location.t * [ `Direct | `Unknown ];
+  loc   : Location.t * [ `Direct | `Primitive of string | `Unknown ];
   kind  : Types.type_expr Item.kind;
   env   : (Ident.t * Path.t) list (** To replace local idents in [kind] by paths *)
 }
@@ -89,12 +89,11 @@ let restrict ~by ts =
       match assoc_opt (Path.name p,k) ts with
       | None ->
           (* CR jfuruse: this must be an error but it happens since we ignore mty_alias for now *)
+          (* CR jfuruse: We do not ignore mty_alias *)
           (* assert false *)
           !!% "ERROR: Ignore restrict failure@.";
           t
-      | Some t' ->
-          (* Which to choose? *)
-          t'
+      | Some t' -> t'
   with
   | e ->
       !!% "!!! restrict error@.";
@@ -108,7 +107,7 @@ let restrict ~by ts =
     
 let rec structure env path str =
   let ty_env = !!!(str.str_final_env) in
-  let _, is = 
+  let _, rev_is = 
     fold_left (fun (env,st) i -> 
       let env, is = structure_item env path ty_env i in
       env, is @ st) (env,[]) str.str_items
@@ -116,49 +115,54 @@ let rec structure env path str =
 
   (* In [include A let x = 1], [x] in [A] must be shadowned by [x] *)
   let tbl = Hashtbl.create 1023 in
-  fold_left (fun st t ->
-    let name = Item.name_of_kind t.kind in 
-    let key = name, Xpath.name t.path in
-    match Hashtbl.find_opt tbl key with
-    | None -> 
-        Hashtbl.add tbl key t.loc;
-        t::st
-    | Some loc -> 
-        match t.kind with
-        | Value _ | Constr _ | Field _ -> st
-        | _ -> 
-            !!% "@[<2>BUG: structure %s: %s %s appears twice in a structure!@,@[<v>%a@,%a@]@."
-              (Xpath.name path)
-              name
-              (Xpath.name t.path)
-              Location.print (fst loc)
-              Location.print (fst t.loc);
-            st) [] is
+  fold_left 
+    (fun st t ->
+      let name = Item.name_of_kind t.kind in 
+      let key = name, Xpath.name t.path in
+      match Hashtbl.find_opt tbl key with
+      | None -> 
+          Hashtbl.add tbl key t.loc;
+          t::st
+      | Some loc -> 
+          match t.kind with
+          | Value _ | Constr _ | Field _ -> st
+          | _ -> 
+              !!% "@[<2>BUG: structure %s: %s %s appears twice in a structure!@,@[<v>%a@,%a@]@."
+                (Xpath.name path)
+                name
+                (Xpath.name t.path)
+                Location.print (fst loc)
+                Location.print (fst t.loc);
+              st) 
+    [] rev_is
 
 and structure_item env path ty_env sitem =
   match sitem.str_desc with
   | Tstr_eval _ -> env, []
   | Tstr_value (_, bindings) -> 
-      (* let ty_env = sitem.str_env in *)
       let ids = let_bound_idents bindings in
       env,
       flip map ids & fun id -> 
         let vdesc = Env.find_value (Pident id) ty_env in
-        let path = pdot path id in
-        { path
-        ; loc= vdesc.Types.val_loc, `Direct
-        ; kind= Value vdesc.Types.val_type
+        assert (vdesc.Types.val_kind = Types.Val_reg);
+        { path = pdot path id
+        ; loc  = vdesc.Types.val_loc, `Direct
+        ; kind = Value vdesc.Types.val_type
         ; env 
         }
   | Tstr_primitive {val_id=id; val_name= {loc}; val_val= vd} -> 
       let path = pdot path id in
-      env, 
-      [ { path
-        ; loc = loc, `Direct
-        ; kind= Value vd.Types.val_type
-        ; env 
-        } 
-      ]
+      begin match vd.Types.val_kind with
+      | Val_prim { Primitive.prim_name = s } ->
+          env, 
+          [ { path
+            ; loc = loc, `Primitive s
+            ; kind= Value vd.Types.val_type
+            ; env 
+            } 
+          ]
+      | _ -> assert false
+      end
   | Tstr_type decls -> 
       let env = map (fun {typ_id=id} -> id, pdot path id) decls @ env in
       env,
@@ -177,7 +181,9 @@ and structure_item env path ty_env sitem =
       let path = pdot path id in
       (id, path) :: env,
       { path
-      ; loc= loc, `Direct
+      ; loc= loc, `Direct (* CR jfuruse: no.
+                             module M = N then it must be an alias
+                          *)
       ; kind= Module
       ; env 
       } :: module_expr env path mexp
@@ -186,7 +192,9 @@ and structure_item env path ty_env sitem =
       env,
       flip concat_map xs & fun {mb_id=id; mb_name= {loc}; mb_expr= mexp } -> 
         { path= pdot path id
-        ; loc= loc, `Direct
+        ; loc= loc, `Direct (* CR jfuruse: no.
+                               module rec M = N then it must be an alias
+                            *)
         ; kind = Module
         ; env 
         } :: module_expr env path mexp
@@ -194,13 +202,16 @@ and structure_item env path ty_env sitem =
       let path = pdot path id in
       (id,path) :: env,
       [ { path
-        ; loc= loc, `Direct
+        ; loc= loc, `Direct (* CR jfuruse: no.
+                               module type S = S' then it must be an alias 
+                            *)
         ; kind= ModType
         ; env 
         } ]
       (* @ in_mty (module_type path mty) *)
   | Tstr_open _ -> env, []
   | Tstr_class xs ->
+      (* class names are available inside them *)
       let env = 
         flip concat_map xs (fun (cl_decl, _, _) ->
           map (fun id -> id, pdot path id) 
@@ -215,6 +226,7 @@ and structure_item env path ty_env sitem =
       flip concat_map xs & fun (cl_decl, _, _) -> 
         class_declaration env path cl_decl
   | Tstr_class_type xs ->
+      (* class names are available inside them *)
       let env = 
         flip concat_map xs (fun (_, _, cl_decl) ->
           map (fun id -> id, pdot path id) 
@@ -232,6 +244,7 @@ and structure_item env path ty_env sitem =
       env_ty_signature env path sg,
       let ts1 = module_expr env path mexp in
       let ts2 = ty_signature env !!!(sitem.str_env) mexp.mod_loc path sg in
+      (* CR jfuruse: loc information must be fixed as included *)
       restrict ~by:ts2 ts1
   | Tstr_typext _ |  Tstr_attribute _ -> assert false (* CR jfuruse: not yet *)
 

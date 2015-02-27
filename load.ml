@@ -60,7 +60,7 @@ let rec load
         -> (OCamlFind.Package.t * string list) list option)
     -> string 
     -> (Spath.t *
-          (string * Location.t * [ `Direct | `Unknown ]) option *
+          (string * Location.t * [ `Direct | `Primitive of string | `Unknown ]) option *
           Stype.t Item.kind *
           [> `Error of unit | `Ok of OCamlDoc.t option ]) list = 
   fun root find_packages path  ->

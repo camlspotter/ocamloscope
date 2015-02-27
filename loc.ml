@@ -29,7 +29,7 @@ type location_t = Location.t = {
 type t = { digest : Digest.t option;
            pack   : [ `None | `OCamlc of string | `OPAM of string ];
            loc : location_t; (* it contains path names... *)
-           alias  : [ `Direct | `Unknown ]
+           alias  : [ `Direct | `Primitive of string | `Unknown ]
          } [@@deriving conv{ocaml}]
 
 let format ppf t = 
