@@ -293,7 +293,7 @@ module Types = Hashtbl.Make(Stype_hcons.HashedType)
 
 let query db qs0 = 
   let module M = struct
-    module Match = Match2.MakePooled(struct
+    module Match = Match.MakePooled(struct
       let cache = Levenshtein.StringWithHashtbl.create_cache 1023
       let pooled_types = db.Load.PooledDB.types
     end)

@@ -1,7 +1,7 @@
 type loc = 
   | Direct of Location.t
   | Primitive of Location.t * string
-  | Unknown of Locattion.t
+  | Unknown of Location.t
 
 type t = { 
   path : Path.t;

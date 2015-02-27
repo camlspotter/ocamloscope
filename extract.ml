@@ -19,6 +19,11 @@ open List (* bravely open it! *)
 
 module P = Printtyp
 
+type loc = 
+  | Direct of Location.t
+  | Primitive of Location.t * string
+  | Unknown of Location.t
+
 type t = { 
   path  : Path.t;
   loc   : Location.t * [ `Direct | `Primitive of string | `Unknown ];

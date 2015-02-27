@@ -60,7 +60,6 @@ SHARED[]=
     oCamlFind
     distthresh
     match
-    match2
     pattern_escape
     xParser
     query

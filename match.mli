@@ -7,8 +7,7 @@ end) : sig
   val match_path_type :
     Spath.t * Stype.t
     -> Spath.t * Stype.t 
-    -> int (** path limit *)
-    -> int (** type limit *)
+    -> int (** limit for path and type *)
     -> (int * (Spath.t * Stype.t)) option
   (** Returns distance, not score *)
   
@@ -41,8 +40,7 @@ end) : sig
     val match_path_type :
       Spath.t
       -> Spath.t * Item.pooled_type
-      -> int (** path limit *)
-      -> int (** type limit *)
+      -> int (** limit for path and type *)
       -> (int * (Spath.t * Stype.t)) option
     (** Returns distance, not score *)
   end
