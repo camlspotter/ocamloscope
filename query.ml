@@ -293,7 +293,7 @@ module Types = Hashtbl.Make(Stype_hcons.HashedType)
 
 let query db qs0 = 
   let module M = struct
-    module Match = Match.MakePooled(struct
+    module Match = Match2.MakePooled(struct
       let cache = Levenshtein.StringWithHashtbl.create_cache 1023
       let pooled_types = db.Load.PooledDB.types
     end)
@@ -349,7 +349,7 @@ let query db qs0 =
               & match_type typ max_dist 
           | Some lid, Some (_, match_path_type) ->
               Option.map (fun (s, ds) -> s, `PathType ds) 
-              & match_path_type lid (i.path,typ) (min max_dist 10) max_dist
+              & match_path_type lid (i.path,typ) max_dist
           end
       | _ -> None
             

@@ -24,3 +24,10 @@ module Gc : sig
 
   val with_big_compacts : ('a -> 'b) -> 'a -> ('b * (int * int))
 end
+
+module List : sig
+
+  val create : int -> (int -> 'a) -> 'a list
+  (** like Array.create. Creation is from the head *)
+
+end

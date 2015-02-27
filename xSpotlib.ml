@@ -60,3 +60,17 @@ module Gc = struct
         used_before, used_after)
 
 end
+
+module List = struct
+
+  (** like Array.create. Creation is from the head *)
+  let create n f = 
+    let rec loop i =
+      if n <= i then []
+      else 
+        let h = f i in
+        h :: loop (i+1)
+    in
+    loop 0
+
+end

@@ -1,6 +1,5 @@
 open Spotlib.Spot
 open List
-open Infix
 
 open Stype
 module I = Ident
@@ -31,7 +30,7 @@ end) = struct
     let (/||/) f1 f2 limit0 =
       match f1 limit0 with
       | None -> f2 limit0
-      | (Some (dist, x) as res) -> Option.do_; 
+      | (Some (dist, _) as res) -> Option.do_; 
           limit <--minus limit0 dist;
           limit <-- one_less limit;
           match f2 limit with
@@ -39,7 +38,7 @@ end) = struct
           | res -> res
 
     let (/&&/) f1 f2 limit0 = Option.do_;
-      [%p? (dist, x) as res] <-- f1 limit0;
+      (dist, x) <-- f1 limit0;
       limit <-- minus limit0 dist;
       (dist',x') <-- f2 limit;
       return (plus dist dist', (x,x'))
@@ -150,13 +149,9 @@ end) = struct
 
   let match_name p t limit = match false with
     | true  -> match_name_levenshtein p t limit
-    | false ->
-        let open Option in
-        let plen = String.length p in
-        let f x = x * x / plen in do_;
-        (dist, x) <-- match_name_substring p t;
-        let dist' = f dist in
-        if dist' > limit then None else return (dist', x)
+    | false -> Option.do_;
+        [%p? (dist, _) as r] <-- match_name_substring p t;
+        if dist <= limit then return r else None
 
   let match_package 
       : string (* pattern *)
@@ -297,7 +292,6 @@ end) = struct
                 >> fun ds -> Attr (`Ref pattern, Tuple ds)
     
             | Constr ({dt_path=p1}, ts1), Constr (({dt_path=p2} as dt), ts2) -> 
-                let open Option in
                 ((fun limit -> Option.do_;
                     (dist, pd0) <-- match_path p1 p2 limit.score;
                     return ({score=dist; expansions=0}, pd0))
@@ -374,7 +368,7 @@ end) = struct
       match pats, targets with
       | [], [] -> return []
       | [pat], [target] ->  match_type pat target >> fun d -> [d]
-      | _ -> fun limit ->
+      | _ -> fun (limit : TypeLimit.t) ->
 
           let len_pats = length pats in
           let len_targets = length targets in
@@ -393,9 +387,9 @@ end) = struct
                how about 7? (2*(7+1)=16 3*(7+1)=24<30 4(7+1)=32>30 
             *)
             if len_pats < len_targets then
-              map (fun _ -> dummy_pattern_type_var) (1 -- (len_targets - len_pats)) @ pats,
-              map (fun target -> target, true) targets,
-              (len_targets - len_pats) * 7
+              ( XSpotlib.List.create (len_targets - len_pats) (fun _ -> dummy_pattern_type_var) @ pats,
+                map (fun target -> target, true) targets,
+                (len_targets - len_pats) * 7 )
             else if len_pats > len_targets then
               (* The target can have less components than the pattern,
                  but with huge penalty
@@ -403,16 +397,20 @@ end) = struct
                  At 8a9d320d4 : x5
                  changed to     x10
               *)
-              pats,
-              map (fun _ -> dummy_type_expr_var, false) (1 -- (len_pats - len_targets)) 
-              @ map (fun target -> target, true) targets,
-              (len_pats - len_targets) * 10
+              ( pats,
+                XSpotlib.List.create (len_pats - len_targets) (fun _ ->
+                  (dummy_type_expr_var, false))
+                @ map (fun target -> target, true) targets,
+                (len_pats - len_targets) * 10 )
             else pats, map (fun x -> (x, true)) targets, 0
           in
 
-          (* redefine limit with the penalty *)
+          (* redefine limit with the penalty of missing components *)
+(*
           Option.do_;
-          limit <-- minus limit { score= penalty; expansions = 0 };
+          limit <-- TypeLimit.minus limit { score= penalty; expansions = 0 };
+*)
+          Option.bind (TypeLimit.minus limit { score= penalty; expansions = 0 }) & fun limit ->
 
           (* If we do things naively, it is O(n^2).
              I've got [GtkEnums._get_tables : unit -> t1 * .. * t70].
@@ -427,8 +425,8 @@ end) = struct
                 match_type pat target limit
           in
     
-          let rec perm_max limit target_pos xs = match xs with
-            | [] -> return []
+          let rec perm_max target_pos xs limit : (TypeLimit.t * _) option = match xs with
+            | [] -> Some (TypeLimit.zero, [])
             | _ ->
                 (* [choose [] xs = [ (x, xs - x) | x <- xs ] *)
                 let rec choose sx = function
@@ -436,51 +434,42 @@ end) = struct
                   | [x] -> [x, rev sx]
                   | x::xs -> (x, rev_append sx xs) :: choose (x::sx) xs
                 in
-                let xss = choose [] xs in
-  
-                let matches =
-                  filter_map (fun (x,xs) ->
-                    match Array.unsafe_get x target_pos with
-                    | None -> (* too much cost *) None
-                    | Some (dist, d) ->
-                        (* CR jfuruse: bug: We ignore the changes of expansions here *)
-                        (with_penalty score 
-                        & perm_max (target_pos+1) xs)
-                        >> fun ds -> d::ds) xss
+                let xxss = choose [] xs in
+
+                let f x xs limit = Option.do_;
+                  (* CR jfuruse: the logic is /&&/ *)
+                  (dist, d) <-- Array.unsafe_get x target_pos;
+                  limit <-- TypeLimit.minus limit dist;
+                  (dist, ds) <-- perm_max (target_pos+1) xs limit;
+                  return (dist, d::ds)
                 in
-                match matches with
-                | [] -> fail
-                | _ -> fold_left1 /||/ matches
-            
+                
+                fold_left1 (/||/) (map (fun (x,xs) -> f x xs) xxss) limit
           in
-    
-          perm_max 0 score_table
-          >> fun ds -> 
-            (combine ds targets 
-                |> filter_map (function
-                    | (_, (_, false)) -> None
-                    | (d, (_, true)) -> Some d))
+          Option.do_;
+          (dist, ds) <-- perm_max 0 score_table limit;
+          (* remove dummy variable match traces from the result *)
+          return & (dist, flip filter_map (combine ds targets)
+                          & function
+                            | (_, (_, false)) -> None
+                            | (d, (_, true)) -> Some d)
     in
     
-    match_type pattern target
+    match_type pattern target limit
   
   (* Return distance, not score *)
-  let match_path_type (p1, ty1) (p2, ty2) limit_path limit_type =
-    let open TypeLimit in do_;
-    (limit_path', match_path) <-- match_path p1 p2 limit_path;
-    (limit, match_xty) <-- match_type ty1 ty2 (create ( limit_type - limit_path +  limit_path'));
-    return (limit_type - limit.score, (match_path, match_xty))
+  let match_path_type (p1, ty1) (p2, ty2) limit = Option.do_;
+    (dist_path, match_path) <-- match_path p1 p2 limit;
+    let limit = TypeLimit.create (limit - dist_path) in
+    (dist_type, match_xty) <-- match_type ty1 ty2 limit;
+    return (dist_path + dist_type.TypeLimit.score, (match_path, match_xty))
     
   
   (* Return distance, not score *)
-  let match_type (* ?no_target_type_instantiate *) t1 t2 limit_type =
-    let open TypeLimit in
-    match_type (* ?no_target_type_instantiate *) t1 t2 (create limit_type) >>= fun (limit, desc) -> 
-    return (limit_type - limit.score, desc)
+  let match_type (* ?no_target_type_instantiate *) t1 t2 limit_type = Option.do_;
+    (dist, desc) <-- match_type (* ?no_target_type_instantiate *) t1 t2 (TypeLimit.create limit_type);
+    return (dist.TypeLimit.score, desc)
   
-  (* Return distance, not score *)
-  let match_path p1 p2 limit =
-    match_path p1 p2 limit >>= fun (score, desc) -> return (limit - score, desc)
 end 
 
 
@@ -497,7 +486,6 @@ end) = struct
 
   let error = M.error
 
-  (* Return distance, not score *)
   let match_path = M.match_path
 
   module WithType(T : sig
@@ -505,7 +493,6 @@ end) = struct
     val cache : [ `NotFoundWith of int | `Exact of int * Stype.t ] array
   end) = struct
 
-    (* Return distance, not score *)
     let match_type t2 limit_type =
       let t1 = T.pattern in
       match t2 with
@@ -523,11 +510,11 @@ end) = struct
                   Array.unsafe_set T.cache n (`Exact dtrace);
                   res
     
-    (* Return distance, not score *)
-    let match_path_type p1 (p2, ty2) limit_path limit_type = do_;
-      (dist_path, desc_path) <-- match_path p1 p2 limit_path;
-      (dist, desc_type) <-- match_type ty2 (limit_type - dist_path);
-      return (dist + dist_path, (desc_path, desc_type))
+    let match_path_type p1 (p2, ty2) limit = Option.do_;
+      (dist_path, match_path) <-- match_path p1 p2 limit;
+      (dist_type, match_xty) <-- match_type ty2 (limit - dist_path);
+      return (dist_path + dist_type, (match_path, match_xty))
+
   end
   
   let report_prof_type = M.report_prof_type
