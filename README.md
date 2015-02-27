@@ -7,7 +7,7 @@ Required softwares
 * OCaml 4.02.1 (Code is highly dependent on the specific compiler version. Do not try compiling with other versions.)
 * OPAM.1.2.0, findlib and OMake to build.
 * spotlib.2.5.2
-* ppx_meta_conv.2.0.0
+* ppx_meta_conv.2.0.1
 * ppx_orakuda.2.0.0 (OPAM name is orakuda.2.0.0)
 * treeprint.2.0.0
 * levenshtein.1.1.0
@@ -27,13 +27,26 @@ Some of the above packages lack `cmxs` files and you have to build them manually
 
 ### `ocamlcommon.cmxs` is missing in OCaml 4.02.1.
 
-This is really tricky, since `ocamlcommon.cmxa` depends on `prims.o` and `libocamlrun.a` (and `-lcurses` if curses is linked) but their info is not inside `cmxa`.
+The following should create `ocamlcommon.cmxs`:
+
+```shell
+$ DIR=`ocamlc -where`
+$ cd $DIR
+$ ocamlopt -linkall -shared compiler-libs/ocamlcommon.cmxa -o compiler-libs/ocamlcommon.cmxs
+```
+
+However, I find it stopped working in recent Mac OS X. It required the following fixes:
+
+* Build `ocamlcommon2.cmxa` just like as `ocamlcommn.cmxa` but link with `byterun/prims.o`, `-lccopt byterun/libcamlrun_shared.so` and `-ccopt -lcurses`.
+* Then create `ocamlcommon.cmxs` from this `ocamlcommon2.cmxa`.
+
+It seems due to Clang and its use in OCaml compiler build, but I do not understand why it requires.
 
 ### `odoc_info.cmxs` is missing in OCaml 4.02.1.
 
 The following command should create `odoc_info.cmxs`:
 
-```
+```shell
 $ ocamlopt -linkall -shared ocamldoc/odoc_info.cmxa -o ocamldoc/odoc_info.cmxs
 ```
 

@@ -19,21 +19,23 @@ let scan ds =
 
 let find base ~digest =
   let cands = Hashtbl.find_all tbl base in
-  flip find_map_opt cands (function
-    | (p, ({contents = Some (Some d)} as r)) ->
-        if digest = d then begin
-          try 
-            let d = Digest.file p in
-            if digest <> d then raise Exit;
-            Some p 
-          with
-          | _ -> r := Some None; None
-        end else None
+  flip find_map_opt cands & function
+    | (p, ({contents = Some (Some d)} as r)) when digest = d ->
+        begin match Digest.file p with
+        | exception _ ->
+            r := Some None; None
+        | d -> 
+            if digest <> d then begin
+              r := Some None; None
+            end else Some p
+        end
+    | (_, {contents = Some (Some _)}) (* different digest *) -> None
     | (_, {contents = Some None (* err *) }) -> None
     | (p, r) ->
-        try 
-          let d = Digest.file p in
-          r := Some (Some d);
-          if digest = d then Some p else None
-        with _ -> r := Some None; None)
-  
+        match Digest.file p with
+        | exception _ ->
+            r := Some None; None
+        | d -> 
+            r := Some (Some d);
+            if digest = d then Some p else None
+

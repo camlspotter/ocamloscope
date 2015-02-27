@@ -23,13 +23,12 @@ let examples =
       ; li [ example "concat" ]
       ; li [ example "(+)" ]
       ; li [ example "float : _" ]
-  (*    ; li [ example "* : float" ] *)
-  (*
-      ; li [ example "{stdlib}._" ]
-      ; li [ example "{stdlib}.*" ]
-  *)
+      ; li [ example "iter -batteries" ]
+      (* ; li [ example "* : float" ] *)
+      (* ; li [ example "{stdlib}._" ] *)
+      (* ; li [ example "{stdlib}.*" ] *)
       ; li [ example "constr Ok" ]
-      ; li [ example "(_) : _" ]
+      (* ; li [ example "(_) : _" ] *)
       ]
     ]
 

@@ -3,5 +3,5 @@ val scan : string list -> unit
 
 val find : string -> digest:string -> string option
 (** find the file of the given base and md5sum in the db.
-    It assures the file currently really exists with the same md5
+    It assures the file currently really exists with the same md5.
  *)

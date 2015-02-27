@@ -280,7 +280,7 @@ let find_packages modules =
             with
             | Not_found ->
                 (* the same cmi was not found in OCamlFind installation directory *)
-                !!% "Warning: No OCamlFind package (so inaccessible) for %s %s@." (Cmfile.CMIDigest.to_string md5) path;
+                !!% "Warning: No OCamlFind package (therefore inaccessible) for %s %s@." (Cmfile.CMIDigest.to_string md5) path;
                 None
           end
     with
@@ -308,62 +308,94 @@ let choose_best_package_name = function
 
 module Packages = struct
 
-  type t = string list [@@deriving conv{ocaml}]
+  type t = {
+    id: int;
+    name: string;
+    packages : string list
+  }
 
-  include Hashcons.Make(struct
-    type t = string list
-    let hash = Hashtbl.hash
-    let equal ss1 ss2 = ss1 = ss2
-    let name = "Packages.t"
-  end)
+  let to_strings x = x.packages
+
+  module ForSave = struct
       
-  let to_strings = id
-  let of_strings ss = non_rec_hcons & map Hcons.string & sort compare ss
+    type t = string list [@@deriving conv{ocaml}]
+  
+    let of_strings ss = map Hcons.string & sort compare ss
+  end
 
-  let hcons = of_strings
-
-  (** A module can be linked with more than one packages *)
-
-  let name_packages_tbl = Hashtbl.create 101
+  let ocaml_of_t t = ForSave.ocaml_of_t t.packages
 
   let cntr = UniqueID.create ()
 
-  let exact_string_of ps =  "{" ^ String.concat "," ps ^ "}"
-
-  let to_id = memoize & fun t ->
-    let name = 
-      match t with
+  let tbl = Hashtbl.create 107
+    
+  let wrap = memoize & fun pkgs ->
+    let id = UniqueID.get cntr in
+    let best_name = match pkgs with
       | [] -> "<no packages>"
-      | _ -> 
-          let s = choose_best_package_name t in
-          let id = UniqueID.get cntr in
-          !% "%s#%d" s id
+      | _ -> choose_best_package_name pkgs
     in
-    name |- fun name -> Hashtbl.replace name_packages_tbl name t
+    let name = !% "%s#%d" best_name id in
+    { id; name; packages=pkgs } |- Hashtbl.replace tbl name
 
-  (* prepare <no packages> *)
-  let () = ignore & to_id []
+  let of_strings pkgs = wrap & ForSave.of_strings pkgs
+
+  let hcons x = of_strings x.packages
+    
+  let t_of_ocaml_exn ?trace o = wrap & ForSave.t_of_ocaml_exn ?trace o
+  let t_of_ocaml ?trace o = let open Result in ForSave.t_of_ocaml ?trace o >>| wrap
+
+  (* prepare {no packages#0} and {stdlib#1} *)
+  let () = ignore & of_strings []
+  let () = ignore & of_strings ["stdlib"]
+      
+  let exact_string_of {packages=ps} =  "{" ^ String.concat "," ps ^ "}"
 
   let compare ps1 ps2 =
     if ps1 == ps2 then 0
     else 
-      match ps1, ps2 with
-      | [ "stdlib" ], [ "stdlib" ] -> 0
+      match ps1.packages, ps2.packages with
       | [ "stdlib" ], _ -> -1
       | _, [ "stdlib" ] -> 1
-      | _ -> compare (to_id ps1) (to_id ps2)
+      | _ -> compare ps1.name ps2.name
     
-  let to_string_for_printing t =
-    match String.split (function '#' -> true | _ -> false) & to_id t with
-    | [name; _] -> name
-    | ["<no packages>"] -> "<no packages>"
-    | _ -> assert false
-  
+  let to_string_for_printing t = "{" ^ t.name ^ "}"
+
+  let to_id x = x.name
+    
   let of_id s = 
-    try Hashtbl.find name_packages_tbl s 
+    try Hashtbl.find tbl s 
     with Not_found -> 
       !!% "No packages found for %s@." s;
-      !!% "  I know %s@."  & String.concat " " & map fst & Hashtbl.to_list name_packages_tbl;
+      !!% "  I know %s@."  & String.concat " " & map fst & Hashtbl.to_list tbl;
       raise Not_found
+
+  let report () =
+    !!% "Current OCamlFind package sets: %d@." & Hashtbl.length tbl
+    (* CR jfuruse: When oco.bin already exists, it prints 2.
+       It is strange but ok, since packages are with well-defined id numbers
+       in oco.bin. 
+
+       It will affect the size of the cache of [cached_match], which
+       is not pretty good therefore should be fixed.
+    *)
+
+  let match_ s t =
+    List.exists (fun p ->
+      s = p
+      || match String.is_prefix' s p with
+         | None -> false
+         | Some "" -> assert false
+         | Some s -> String.unsafe_get s 0 = '.') t.packages
+
+  let cached_match s =
+    let cache = Hashtbl.create (max 400 (Hashtbl.length tbl)) in
+    fun t ->
+      match Hashtbl.find cache t.id with
+      | x -> x
+      | exception Not_found ->
+          let res = match_ s t in
+          Hashtbl.replace cache t.id res;
+          res
 end
 

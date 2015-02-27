@@ -184,7 +184,7 @@ let entry_group_head p k =
           ; div_class "info" [ !$ (Option.default (OCamlFind.Package.find_var "description" pack) (fun _ -> "no description")) ]
 *)
 
-let entry_group_body_elem (_id, i) =
+let entry_group_body_elem ((item_id : int), i) =
   (* CR jfuruse: Now the code is in item.ml *)
   let rec get_opened = function
     | Spath.SPdot (p, _) -> Some p
@@ -207,13 +207,17 @@ let entry_group_body_elem (_id, i) =
 
   let ent x = div_class "line" (kind i.kind @ x) in
 
-  let to_source = match i.loc with
-    | None -> div []
-    | Some l -> 
-        match Loc.id l with
-        | None -> div []
-        | Some (p,md5,l) ->
-            div_class "source-link" [ ElServices.Source.a ~fragment:(ElSource.line_id l) [ !$ "src" ] (p, (md5, l)) ]
+  let to_source =
+    if Array.unsafe_get ElLoad.source_available item_id then begin
+      match
+        let open Option in
+        i.loc >>= Loc.id
+      with
+      | None -> div []
+      | Some (p,md5,l) ->
+          div_class "source-link" [ ElServices.Source.a ~fragment:(ElSource.line_id l) [ !$ "src" ] (p, (md5, l)) ]
+    end else div []
+
   in
 
   let main = match i.kind with

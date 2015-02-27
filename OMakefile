@@ -62,6 +62,7 @@ SHARED[]=
     match
     pattern_escape
     xParser
+    packageq
     query
     cachedQuery
     attr

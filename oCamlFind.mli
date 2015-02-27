@@ -121,7 +121,7 @@ module Packages : sig
 
   val of_id : string -> t
   (** Retrieve a known set of packages from its name. *)
-
+    
   val to_string_for_printing : t -> string
   (** Name of the packages, without the id integer: {foo} *)
 
@@ -131,4 +131,12 @@ module Packages : sig
   val compare : t -> t -> int
   (** {stdlib#1} has the lowest value *)
 
+  val report : unit -> unit
+  (** Print out the number of package sets registered *)
+
+  val match_ : string -> t -> bool
+  (** "aaa" matches with {aaa} and also with {aaa.bbb, ccc} *)
+
+  val cached_match : string -> t -> bool
+  (** Fast version of [match_]. Valid only when the whole package sets become stable. *)
 end

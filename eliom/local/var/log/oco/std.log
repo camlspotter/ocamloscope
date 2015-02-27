@@ -1,9 +1,0 @@
-=======================
-starting ocsigenserver
-ocsigenserver.opt: main: Fatal - While loading /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs: error loading shared library: dlopen(/Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs, 138): Symbol not found: _caml_terminfo_backup
-ocsigenserver.opt: main:   Referenced from: /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
-ocsigenserver.opt: main:   Expected in: flat namespace
-ocsigenserver.opt: main:  in /Users/jun/.opam/4.02.1/lib/ocaml/compiler-libs/ocamlcommon.cmxs
-=======================
-starting ocsigenserver
-ocsigenserver: main: Fatal - Error in configuration file: Error while parsing configuration file: Eliom: while loading ocoeliom.cma: Unix.Unix_error(Unix.EINTR, "select", "")

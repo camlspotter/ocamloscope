@@ -139,8 +139,18 @@ end) = struct
     | _ -> 
         if n = m then Some (0, (m0, Some n0))
         else
-          let n = String.lowercase n
-          and m = String.lowercase m in
+          let fix s =
+            let len = String.length s in
+            let b = Buffer.create len in
+            for i = 0 to len-1 do
+              match String.unsafe_get s i with
+              | '_' -> ()
+              | c -> Buffer.add_char b & Char.lowercase c
+            done;
+            Buffer.contents b
+          in
+          let n = fix n
+          and m = fix m in
           if not (String.is_substring ~needle:n m) then None
           else 
             let dist = String.length m - String.length n in

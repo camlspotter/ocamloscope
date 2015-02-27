@@ -96,7 +96,10 @@ let query name =
       CachedQuery.query ElLoad.db 0 [ { Query.Query.kind= Some `Package;
                                         path= Some ppath;
                                         type_= None;
-                                        dist0= true }]
+                                        dist0= true;
+                                        package= []
+                                      }
+                                    ]
     with
     | `Ok (_, [_dist, (_, _, [_pkgs, [_id, i]])], search_time, group_time, _size), _ ->
         begin match i.kind with
