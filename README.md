@@ -1,3 +1,5 @@
+# Discontinued: OCamlOScope 1 is discontinued.  Please check https://github.com/camlspotter/ocamloscope.2
+
 Installation
 ===========================
 
